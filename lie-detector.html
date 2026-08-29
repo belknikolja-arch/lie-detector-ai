@@ -37,7 +37,6 @@ textarea:focus,input:focus{outline:none;border-color:var(--acc)}
 .muted{color:var(--muted);font-size:13.5px}
 .err{background:#2b1215;border:1px solid #6b2229;color:#f3b1b7;border-radius:12px;padding:10px 14px;font-size:13.5px;margin:10px 0}
 .hint{font-size:13px;color:var(--muted);margin-top:8px}
-/* results */
 .result{margin-top:20px;animation:fade .3s}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .gauge-box{display:flex;flex-direction:column;align-items:center}
@@ -62,6 +61,17 @@ textarea:focus,input:focus{outline:none;border-color:var(--acc)}
 .sig-pts.lie{color:var(--bad)} .sig-pts.truth{color:var(--good)} .sig-pts.info{color:var(--acc)}
 .sig-detail{color:var(--muted);margin-top:4px}
 canvas.wave{width:100%;height:150px;background:var(--card2);border:1px solid var(--line);border-radius:12px;display:block}
+.baseline-card{background:var(--card2);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;margin:14px 0}
+.bs-title{font-weight:700;font-size:14px}
+.cmp{margin-top:16px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px}
+.cmp-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.cmp-head h3{font-size:14.5px;margin:0}
+.cmp-index{font-size:13.5px;color:var(--muted)}
+.cmp-row{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+.cmp-name{flex:0 0 150px;color:var(--muted)}
+.cmp-vals{flex:1}
+.cmp-dev{font-weight:700;flex:0 0 92px;text-align:right}
+@media(max-width:600px){.cmp-name{flex-basis:105px}.cmp-dev{flex-basis:80px}}
 details.method{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 20px;margin-bottom:16px}
 details.method summary{cursor:pointer;font-weight:700;font-size:16px;padding:12px 0;color:var(--acc2)}
 details.method h4{margin:18px 0 6px;font-size:14.5px;color:var(--acc2)}
@@ -74,8 +84,8 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 <body>
 <div class="wrap">
 
-  <h1>🕵️ Детектор лжи <span class="badge">AI • эксперимент</span></h1>
-  <p class="sub">Анализ текста и речи на маркеры обмана. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
+  <h1>🕵️ Детектор лжи <span class="badge">AI v1.1 • эксперимент</span></h1>
+  <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
 
   <div class="strip">
     ⚠️ <b>Честное предупреждение.</b> Научные мета-анализы (Bond &amp; DePaulo, 2006; 206 исследований, 24 483 наблюдателя) показывают: люди распознают ложь на ~54% — почти как подбрасывание монеты, а специалисты — не лучше. Ни один ИИ не даёт «гарантированного» результата. Это приложение — <b>учебно-аналитический инструмент</b>: оно подсвечивает статистические маркеры, которые исследователи связывают с обманом. Результат <b>не является заключением о человеке</b> и не может использоваться как улика.
@@ -100,12 +110,24 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
   <div id="panelVoice" class="card hidden">
     <p class="muted" style="margin-top:0">Запишите речь человека в микрофон (лучше всего — прямой ответ на обвинение или вопрос, 15–60 секунд) или загрузите аудиофайл.</p>
     <div class="row">
-      <button class="btn primary" id="btnRec" onclick="toggleRecord()">⏺ Записать речь</button>
+      <button class="btn primary" id="btnRec" onclick="toggleRecord('analysis')">⏺ Записать речь</button>
       <label class="btn" style="cursor:pointer">📁 Загрузить аудио<input type="file" id="fileAudio" accept="audio/*" hidden></label>
       <span class="muted" id="recStatus"></span>
     </div>
     <div class="err hidden" id="voiceError"></div>
     <div class="hint">Подсказка: записывайте в спокойном месте, голос на расстоянии вытянутой руки. Если микрофон недоступен (например, в sandboxed-просмотре) — используйте загрузку файла или откройте этот HTML в своём браузере.</div>
+    <div class="baseline-card">
+      <div class="row" style="margin:0 0 8px">
+        <span class="bs-title">📐 Эталон голоса</span>
+        <span class="muted" id="baseStatus">эталон не задан</span>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnRecBase" onclick="toggleRecord('base')">⏺ Записать эталон</button>
+        <label class="btn" style="cursor:pointer">📁 Загрузить эталон<input type="file" id="fileBase" accept="audio/*" hidden></label>
+        <button class="btn" id="btnDelBase" onclick="deleteBaseline()" disabled>🗑 Удалить</button>
+        <span class="hint" style="margin:0">Эталон — голос человека в обычном спокойном состоянии (30–60 с). Сравнение с ним снижает влияние индивидуальных особенностей (высокий/низкий тон и т.п.).</span>
+      </div>
+    </div>
     <div id="voiceResult"></div>
   </div>
 
@@ -129,6 +151,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <li>Из аудио прямо в браузере (Web Audio API) извлекаются: <b>высота тона (F0)</b>, его <b>вариативность</b> и <b>микрофлуктуации</b>, доля <b>пауз</b>, <b>динамика энергии</b>.</li>
       <li>В мета-анализе DePaulo (2003) лишь два паравербальных признака показали значимую, но <i>слабую</i> связь с ложью: высота тона и вокальное напряжение. Поэтому веса акустических признаков здесь намеренно малы.</li>
       <li>«Анализ стресса голоса» (VSA), на котором раньше строились коммерческие системы, научным сообществом <b>не подтверждён</b> — мы повторяем эту осторожность.</li>
+      <li><b>Сравнение с эталоном</b> — внутриличностный контроль: задаётся голос человека в обычном состоянии, а система показывает расхождения в высоте тона, микрофлуктуациях, паузах и энергии (индекс отклонения 0–100: F0 30%, микрофлуктуации 25%, паузы 25%, энергия 20%). Это снимает влияние «штатных» особенностей голоса, но изменения вызывают и стресс, усталость, болезнь — поэтому вклад эталона в итоговый индекс ограничен (макс. +2.5 пункта).</li>
     </ul>
 
     <h4>Ограничения</h4>
@@ -139,10 +162,10 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     </ul>
 
     <h4>Конфиденциальность</h4>
-    <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются.</p>
+    <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.1 (сравнение с эталоном голоса) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
 
 <script id="core">
@@ -211,7 +234,7 @@ function countProper(text){
     const i=m.index;
     if(i===0) continue;
     let j=i-1;
-    while(j>=0&&/\s/.test(text[j])) j--;      // предыдущий несимволичный символ
+    while(j>=0&&/\s/.test(text[j])) j--;      // предыдущий не-пробельный символ
     if(j<0) continue;
     if(/[.!?…;:\n]/.test(text[j])) continue;   // заглавная после знака препинания = начало предложения
     c++;
@@ -298,7 +321,7 @@ function analyzeText(raw){
 
   // 3. Самооправдание
   const clm=countList(tokens,L.claims);
-  if(clm>=1){
+  if(!SHORT&&clm>=1){
     const pts=Math.min(3.5,1.5+clm*0.75);
     signals.push(sig('lie',pts,'Излишние заверения в честности','В тексте '+clm+' верификационное утверждение(й) вроде «честно», «клянусь», «точно». Исследования показывают: лжецы чаще сами подчёркивают правдивость своих слов, чем правдивые.'));
   }
@@ -327,7 +350,7 @@ function analyzeText(raw){
   if(!SHORT&&emoD>=0.8){
     signals.push(sig('truth',1.5,'Эмоционально насыщенно','Эмоциональных слов: '+emo+' ('+emoD.toFixed(1)+' на 100 слов). «Penance markers» — честные люди чаще «выплачивают» эмоции.'));
   } else if(!SHORT&&emoD<0.2 && nW>=40){
-    signals.push(sig('lie',1.2,'Эмоционально бедно','Эмоциональная лексика почти отсутствует. Обман нередко лишен эмоционального «выплатного» компонента.'));
+    signals.push(sig('lie',1.2,'Эмоционально бедно','Эмоциональная лексика почти отсутствует. Обман нередко лишён эмоционального «выплатного» компонента.'));
   }
 
   // 7. Эхо фраз
@@ -343,7 +366,7 @@ function analyzeText(raw){
 
   // 9. Короткий текст
   if(nW<15){
-    signals.push(sig('info',0,'Текст короткий','Меньше 15 слов — надёжного вывода нет. Попробуйте привнести более развёрнутое высказывание.'));
+    signals.push(sig('info',0,'Текст короткий','Меньше 15 слов — надёжного вывода нет. Попробуйте привести более развёрнутое высказывание.'));
   }
 
   let score=50;
@@ -492,6 +515,35 @@ async function analyzeVoiceBuffer(audioBuffer){
     metrics:{duration:total,voicedSec:voicedSec,f0mean:f0mean,relVar:relVar,jitter:jitter,pauseRatio:pauseRatio,rmsDb:rmsDb,energyTrend:energyTrend},
     signals:signals,data:data,f0s:f0s,frame:FRAME,hop:HOP};
 }
+
+/* Сравнение метрик с эталоном голоса (базовая линия). Чистая функция. */
+function compareVoiceMetrics(base,cur){
+  function rel(b,c,normDiv,fmt){
+    if(!(b>0)||!(c>0)) return {na:true};
+    const dev=(c/b-1)*100;
+    return {devPct:dev,norm:Math.min(1,Math.abs(dev)/normDiv),baseTxt:fmt(b),curTxt:fmt(c)};
+  }
+  function absD(b,c,normDiv,unit,fmt){
+    if(!isFinite(b)||!isFinite(c)) return {na:true};
+    const dev=c-b;
+    return {devPct:dev,norm:Math.min(1,Math.abs(dev)/normDiv),baseTxt:fmt(b),curTxt:fmt(c),devUnit:unit};
+  }
+  const fmtHz=v=>v.toFixed(0)+' Гц';
+  const fmtPct=v=>(v*100).toFixed(0)+'%';
+  const fmtDb=v=>v.toFixed(0)+' дБ';
+  const row=(name,r,unit)=>({name:name,na:!!r.na,devPct:r.na?0:r.devPct,norm:r.na?0:r.norm,
+    base:r.na?'—':r.baseTxt,cur:r.na?'—':r.curTxt,devUnit:r.na?unit:(r.devUnit||unit)});
+  const f0=rel(base.f0mean,cur.f0mean,25,fmtHz);
+  const rv=rel(base.relVar,cur.relVar,100,fmtPct);
+  const jt=rel(base.jitter,cur.jitter,100,fmtPct);
+  const pa=absD(base.pauseRatio,cur.pauseRatio,0.20,'pp',fmtPct);
+  const en=absD(base.rmsDb,cur.rmsDb,10,'db',fmtDb);
+  const rows=[row('Средний тон',f0,'%'),row('Вариативность тона',rv,'%'),
+              row('Микрофлуктуации',jt,'%'),row('Паузы',pa,'pp'),row('Энергия',en,'db')];
+  // Индекс отклонения: F0 30%, микрофлуктуации 25%, паузы 25%, энергия 20%
+  const idx=Math.round(100*Math.min(1,0.30*rows[0].norm+0.25*rows[2].norm+0.25*rows[3].norm+0.20*rows[4].norm));
+  return {rows:rows,index:idx,reliable:(base.voicedSec>=3&&cur.voicedSec>=3)};
+}
 </script>
 
 <script>
@@ -599,7 +651,7 @@ function flashError(el,msg){
 $('txtInput').addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter') runTextAnalysis(); });
 
 /* ---------- Голос ---------- */
-let mediaRec=null,chunks=[],recTimer=null,recStart=0;
+let mediaRec=null,chunks=[],recTimer=null,recStart=0,recMode='analysis';
 
 function showVoiceError(msg){ const e=$('voiceError'); e.textContent=msg; e.classList.remove('hidden'); }
 function hideVoiceError(){ $('voiceError').classList.add('hidden'); }
@@ -638,11 +690,47 @@ async function runVoiceAnalysis(buffer){
       ['Энергия',m.rmsDb.toFixed(0)+' дБ']
     ].map(x=>'<div class="stat"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
     $('vStats').innerHTML=statHTML;
+    // сравнение с эталоном (если задан)
+    const base=getBaseline();
+    if(base){
+      const cmp=compareVoiceMetrics(base,r.metrics);
+      if(cmp.reliable){
+        if(cmp.index>=45){
+          r.signals.unshift(sig('lie',2.5,'Голос заметно отличается от эталона','Индекс отклонения от привычного голоса: '+cmp.index+'/100. У лжецов интонация и ритм обычно «плывут» сильнее, но эффект дают и стресс, усталость, волнение — интерпретируйте вместе с остальными маркерами.'));
+          r.score=clamp(r.score+2.5,5,95); r.verdict=verdictOf(r.score);
+          setGauge('vg',r.score,r.verdict); $('vVerdict').innerHTML=verdictHTML(r.verdict);
+        }else if(cmp.index>=25){
+          r.signals.unshift(sig('lie',1.5,'Голос слегка отличается от эталона','Индекс отклонения: '+cmp.index+'/100 — умеренное расхождение с привычным голосом.'));
+          r.score=clamp(r.score+1.5,5,95); r.verdict=verdictOf(r.score);
+          setGauge('vg',r.score,r.verdict); $('vVerdict').innerHTML=verdictHTML(r.verdict);
+        }
+      }
+      $('vSignals').insertAdjacentHTML('beforebegin',renderComparison(cmp));
+    }
     renderSignals($('vSignals'),r.signals);
   }catch(err){
     out.innerHTML='';
     showVoiceError('Не удалось разобрать аудио: '+(err&&err.message?err.message:err)+' — попробуйте другой файл (mp3, wav, ogg, m4a).');
   }
+}
+
+function renderComparison(cmp){
+  const rows=cmp.rows.map(r=>{
+    if(r.na) return '<div class="cmp-row"><span class="cmp-name">'+r.name+'</span><span class="cmp-vals muted">нет данных</span><span class="cmp-dev muted">—</span></div>';
+    const col=Math.abs(r.devPct)<10?'var(--good)':Math.abs(r.devPct)<25?'var(--warn)':'var(--bad)';
+    const arrow=r.devPct>0.5?'↑':(r.devPct<-0.5?'↓':'→');
+    const sign=r.devPct>0?'+':'';
+    const devTxt=r.devUnit==='pp'?sign+r.devPct.toFixed(0)+' п.п.'
+      :r.devUnit==='db'?sign+r.devPct.toFixed(1)+' дБ'
+      :sign+r.devPct.toFixed(0)+'%';
+    return '<div class="cmp-row"><span class="cmp-name">'+r.name+'</span><span class="cmp-vals">'+r.base+' → <b>'+r.cur+'</b></span><span class="cmp-dev" style="color:'+col+'">'+arrow+' '+devTxt+'</span></div>';
+  }).join('');
+  const note=cmp.reliable
+    ? 'Относительный показатель: эталон учитывает индивидуальные особенности голоса, но изменения вызывают и стресс, усталость, болезнь, смена голоса у микрофона.'
+    : '⚠️ В эталоне или анализе меньше 3 с речи — сравнение ненадёжное, в итоговый индекс не добавлено.';
+  return '<div class="cmp"><div class="cmp-head"><h3>📐 Сравнение с эталоном</h3><span class="cmp-index">Индекс отклонения: <b>'+cmp.index+'</b>/100</span></div>'
+    +rows
+    +'<div class="hint" style="margin-top:8px">'+note+'</div></div>';
 }
 
 function drawWave(r){
@@ -681,10 +769,12 @@ function drawWave(r){
   }
 }
 
-async function toggleRecord(){
-  const btn=$('btnRec');
+async function toggleRecord(mode){
   if(mediaRec && mediaRec.state==='recording'){ mediaRec.stop(); return; }
+  recMode=(mode==='base')?'base':'analysis';
   hideVoiceError();
+  const btn=recMode==='base'?$('btnRecBase'):$('btnRec');
+  const statusEl=recMode==='base'?$('baseStatus'):$('recStatus');
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
     const mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'';
@@ -698,7 +788,8 @@ async function toggleRecord(){
       const blob=new Blob(chunks,{type:mediaRec.mimeType||'audio/webm'});
       const ab=await blob.arrayBuffer();
       const buf=await decodeArrayBuffer(ab);
-      runVoiceAnalysis(buf);
+      if(recMode==='base') await setBaselineFromBuffer(buf);
+      else runVoiceAnalysis(buf);
     };
     mediaRec.onerror=()=>{ stopRecUI(); showVoiceError('Ошибка записи.'); };
     mediaRec.start();
@@ -707,7 +798,7 @@ async function toggleRecord(){
     btn.classList.add('recording');
     recTimer=setInterval(()=>{
       const sec=Math.floor((Date.now()-recStart)/1000);
-      $('recStatus').textContent='⏺ Запись… '+(String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'))+' / 01:30';
+      statusEl.textContent='⏺ Запись… '+(String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'))+' / 01:30';
       if(sec>=90 && mediaRec && mediaRec.state==='recording') mediaRec.stop();
     },500);
   }catch(err){
@@ -717,11 +808,77 @@ async function toggleRecord(){
 }
 function stopRecUI(){
   if(recTimer){clearInterval(recTimer);recTimer=null;}
-  $('recStatus').textContent='';
-  const btn=$('btnRec');
-  btn.textContent='⏺ Записать речь';
-  btn.classList.remove('recording');
+  if(recMode==='base'){
+    const b=$('btnRecBase');
+    b.textContent='⏺ Записать эталон';
+    b.classList.remove('recording');
+    renderBaseStatus(getBaseline());
+  }else{
+    $('recStatus').textContent='';
+    const btn=$('btnRec');
+    btn.textContent='⏺ Записать речь';
+    btn.classList.remove('recording');
+  }
 }
+
+/* ---------- Эталон голоса (baseline) ---------- */
+function getBaseline(){
+  try{ const s=localStorage.getItem('lieDetectorVoiceBase'); return s?JSON.parse(s):null; }
+  catch(e){ return null; }
+}
+function saveBaseline(m){
+  const b=Object.assign({},m,{createdAt:new Date().toISOString()});
+  try{ localStorage.setItem('lieDetectorVoiceBase',JSON.stringify(b)); }catch(e){}
+  renderBaseStatus(b);
+}
+function deleteBaseline(){
+  try{ localStorage.removeItem('lieDetectorVoiceBase'); }catch(e){}
+  renderBaseStatus(null);
+}
+function renderBaseStatus(b){
+  const st=$('baseStatus'); const del=$('btnDelBase');
+  if(!st||!del) return;
+  if(b){
+    const d=new Date(b.createdAt);
+    st.textContent='✓ эталон: '+(b.voicedSec||0).toFixed(1)+' с речи, '+(b.f0mean>0?b.f0mean.toFixed(0)+' Гц':'—')
+      +' • '+d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    del.disabled=false;
+  }else{
+    st.textContent='эталон не задан';
+    del.disabled=true;
+  }
+}
+async function setBaselineFromBuffer(buf){
+  $('baseStatus').textContent='⏳ Анализирую эталон…';
+  try{
+    const r=await analyzeVoiceBuffer(buf);
+    hideVoiceError();
+    if(r.metrics.voicedSec<1.5){
+      showVoiceError('В записи эталона почти нет речи — запишите 30–60 секунд спокойного разговора.');
+      return;
+    }
+    saveBaseline(r.metrics);
+  }catch(err){
+    renderBaseStatus(getBaseline());
+    showVoiceError('Не удалось разобрать эталон: '+(err&&err.message?err.message:err));
+  }
+}
+$('fileBase').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(!f) return;
+  hideVoiceError();
+  $('baseStatus').textContent='⏳ Читаю файл эталона…';
+  try{
+    const ab=await f.arrayBuffer();
+    const buf=await decodeArrayBuffer(ab);
+    await setBaselineFromBuffer(buf);
+  }catch(err){
+    renderBaseStatus(getBaseline());
+    showVoiceError('Не удалось прочитать файл эталона. Поддерживаются mp3, wav, ogg, m4a, webm.');
+  }
+  e.target.value='';
+});
+
 $('fileAudio').addEventListener('change',async e=>{
   const f=e.target.files&&e.target.files[0];
   if(!f) return;
@@ -737,6 +894,8 @@ $('fileAudio').addEventListener('change',async e=>{
   }
   e.target.value='';
 });
+
+renderBaseStatus(getBaseline());
 </script>
 </body>
 </html>
