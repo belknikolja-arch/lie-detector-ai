@@ -41,7 +41,24 @@
 > В sandboxed-превью (iframe без `allow-microphone`) запись в микрофон может быть
 > заблокирована браузером — в этом случае используйте загрузку аудиофайла.
 
+## Публикация на GitHub
+
+```bash
+# 1) Создайте пустой репозиторий на github.com (например, lie-detector-ai)
+# 2) Добавьте его как origin и отправьте:
+git remote add origin https://github.com/<ваш-логин>/lie-detector-ai.git
+git push -u origin main
+```
+
+**Бонус — живой демо-сайт:** в настройках репозитория включите
+*Settings → Pages → Source: Deploy from a branch → main / (root)*.
+Файл `index.html` — копия приложения, поэтому демо сразу заработает
+по адресу `https://<ваш-логин>.github.io/lie-detector-ai/`.
+
+> Важно: в браузере запись с микрофона требует HTTPS (GitHub Pages даёт его автоматически).
+
 ## Файлы
 
 - `lie-detector.html` — всё приложение (HTML + CSS + JS в одном файле).
+- `index.html` — копия приложения для GitHub Pages (демо-сайт).
 - `README.md` — этот файл.
