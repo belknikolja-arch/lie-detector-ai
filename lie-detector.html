@@ -92,6 +92,10 @@ canvas.wave{width:100%;height:150px;background:var(--card2);border:1px solid var
 .mk.hedge{background:rgba(234,179,8,.14);box-shadow:inset 0 -2px 0 var(--warn)}
 .mk.det{background:rgba(34,197,94,.12);box-shadow:inset 0 -2px 0 var(--good)}
 input.qtopic{background:var(--card2);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:11px 14px;font-size:14.5px;flex:1;min-width:240px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg-b{background:var(--card2);border:none;color:var(--muted);padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.seg-b+.seg-b{border-left:1px solid var(--line)}
+.seg-b.active{background:#1c2447;color:#fff}
 .qitem{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
 .qitem.fu{border-style:dashed}
 .q-head{display:flex;gap:10px;align-items:baseline;margin-bottom:8px}
@@ -115,7 +119,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 <body>
 <div class="wrap">
 
-  <h1>🕵️ Детектор лжи <span class="badge">AI v1.4 • эксперимент</span></h1>
+  <h1>🕵️ Детектор лжи <span class="badge">AI v1.5 • эксперимент</span></h1>
   <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
 
   <div class="strip">
@@ -186,9 +190,15 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
   <div id="panelQ" class="card hidden">
     <p class="muted" style="margin-top:0">Режим интервью (по мотивам методики PEACE): задайте тему, получите список открытых вопросов. После каждого ответа система покажет его маркеры и предложит уточняющие вопросы — «копнуть» именно там, где ответ «плывёт». В конце — сводка с экспортом.</p>
     <div class="row">
-      <input id="qTopic" class="qtopic" placeholder="Тема расследования: например, исчезновение документов из офиса">
+      <input id="qTopic" class="qtopic" placeholder="Тема расследования: например, исчезновение документов из офиса (или the missing documents)">
+      <div class="seg" id="qLang" title="Язык вопросов: авто — по языку темы">
+        <button type="button" class="seg-b active" data-l="auto">Авто</button>
+        <button type="button" class="seg-b" data-l="ru">RU</button>
+        <button type="button" class="seg-b" data-l="en">EN</button>
+      </div>
       <button class="btn primary" onclick="startInterview()">▶ Начать интервью</button>
     </div>
+    <div class="hint">Язык вопросов (v1.5): «Авто» определяет язык по теме; RU/EN — принудительный. Вопросы, уточнения, сводка и экспорт будут на выбранном языке.</div>
     <div id="qList"></div>
     <div class="row" id="qSummaryRow" style="display:none">
       <button class="btn" onclick="interviewSummary()">📊 Сводка по интервью</button>
@@ -233,6 +243,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <ul>
       <li>Стартовые вопросы — открытые, в духе PEACE (полное рассказывание, время, место, последовательность, другие свидетели, память, чувства). Уточняющие вопросы генерируются по маркерам ответа: много отрицаний → «что именно вы делали?», оговорки → «давайте точность», мало конкретики → «какие цифры, имена, время?», эхо → «перескажите своими словами». С v1.4: живой средний индекс по ходу интервью, лимит 2 уточнений на вопрос (от переувеличения) и видимое предупреждение о коротких ответах.</li>
       <li>Логика: в свободном рассказе лжецу сложнее держать версию согласованной, а уточнения направляют проверку в слабые места <b>фактов</b>. Это инструмент структурирования разговора, а не «ловушка».</li>
+      <li><b>Двуязычное интервью</b> (v1.5) — вопросы, уточняющие вопросы, сводка и экспорт на русском или английском. «Авто» определяет язык по теме; RU/EN — принудительное переключение.</li>
     </ul>
 
     <h4>Ограничения</h4>
@@ -246,7 +257,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI v1.4 (текст с подсветкой • голос с ритмом и трендом • эталон расширен • две версии с полярностью • интервью с живым баллом) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.5 (текст с подсветкой • голос с ритмом и трендом • эталон расширен • две версии с полярностью • двуязычное интервью RU/EN) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
 
 <script id="core">
@@ -878,34 +889,79 @@ function compareStatements(rawA,rawB){
     stats:{a:{nW:ta.length},b:{nW:tb.length}}};
 }
 
-/* ---------------- Интервью: генератор вопросов (v1.3) ---------------- */
-function generateQuestions(topic){
+/* ---------------- Интервью: генератор вопросов (v1.3, v1.5 — RU/EN) ---------------- */
+const QUESTIONS={
+ru:t=>[
+  'Расскажите обо всём, что связано с «'+t+'», по порядку, ничего не пропускайте.',
+  'Когда именно это произошло: в какой день, примерно во сколько — по вашей памяти?',
+  'Где это происходило? Кто был рядом и что каждый делал?',
+  'Что вы делали до и после: в каком порядке шли события?',
+  'Кто ещё знает о «'+t+'» и что вы им рассказывали? Совпадает ли это с тем, что вы говорите сейчас?',
+  'Что именно вы помните лучше всего, и что, наоборот, размыто?',
+  'Как вы себя чувствовали в этой ситуации и как отреагировали в моменте?'
+],
+en:t=>[
+  'Tell me everything you can about “'+t+'”, in order — don’t leave anything out.',
+  'When exactly did it happen: on what day, around what time — to the best of your memory?',
+  'Where was it? Who was nearby and what was each person doing?',
+  'What were you doing before and after: in what sequence did the events unfold?',
+  'Who else knows about “'+t+'” and what have you told them? Does it match what you’re saying now?',
+  'What do you remember most clearly, and what is fuzzy instead?',
+  'How did you feel in that situation, and how did you react at the moment?'
+]};
+const FALLBACK_FU={
+ru:t=>['Какую деталь о «'+t+'» вы могли бы рассказать, но считаете, что я о ней не спросил?','Опишите «'+t+'» с конца: что было в самом конце, что перед этим. Часто так вспоминать проще.'],
+en:t=>['What detail about “'+t+'” could you tell me that you think I haven’t asked about?','Describe “'+t+'” from the end: what happened at the very end, what came before it. It’s often easier to remember that way.']};
+const FU={
+ru:t=>({
+  dups:'Вы повторяли мои формулировки. Перескажите своими словами: что ещё вы помните в связи с «'+t+'»?',
+  neg:'В ответе много отрицаний. Тогда что именно вы делали? Опишите свои действия по шагам.',
+  hedge:'Появились оговорки («может быть», «кажется»). Давайте точность: что произошло на самом деле, по вашему честному ощущению?',
+  claim:'Вы подчёркиваете свою честность — это нормально. Перейдём к фактам: назовите точное время и место, которые вы помните.',
+  det:'Добавьте конкретики: какие цифры, имена, даты или время суток вы помните в связи с «'+t+'»?',
+  emo:'Расскажите о чувствах: что вы почувствовали, когда это произошло? Как отреагировали?'
+}),
+en:t=>({
+  dups:'You were repeating my wording. Retell it in your own words: what else do you remember about “'+t+'”?',
+  neg:'Your answer has many negations. So what exactly were you doing? Describe your actions step by step.',
+  hedge:'Hedges appeared (“maybe”, “I think”). Let’s be precise: what actually happened, to your honest feeling?',
+  claim:'You keep emphasizing your honesty — that’s normal. Let’s move to the facts: name the exact time and place you remember.',
+  det:'Add specifics: what numbers, names, dates or times of day do you remember in connection with “'+t+'”?',
+  emo:'Tell me about your feelings: what did you feel when this happened? How did you react?'
+})};
+function interviewLang(topic,pref){
+  if(pref==='ru'||pref==='en') return pref;
   const t=(topic||'').trim();
-  const T=t||'события';
-  return [
-    'Расскажите обо всём, что связано с «'+T+'», по порядку, ничего не пропускайте.',
-    'Когда именно это произошло: в какой день, примерно во сколько — по вашей памяти?',
-    'Где это происходило? Кто был рядом и что каждый делал?',
-    'Что вы делали до и после: в каком порядке шли события?',
-    'Кто ещё знает о «'+T+'» и что вы им рассказывали? Совпадает ли это с тем, что вы говорите сейчас?',
-    'Что именно вы помните лучше всего, и что, наоборот, размыто?',
-    'Как вы себя чувствовали в этой ситуации и как отреагировали в моменте?'
-  ];
+  return t.length>=4 ? detectLang(t) : 'ru';
 }
-function genFollowUps(answer,topic){
+function generateQuestions(topic,lang){
+  const L=(lang==='en')?'en':'ru';
   const t=(topic||'').trim();
-  const T=t||'это';
+  const T=t||(L==='en'?'the incident':'события');
+  return QUESTIONS[L](T);
+}
+function genFollowUps(answer,topic,lang){
+  const L=(lang==='en')?'en':'ru';
+  const t=(topic||'').trim();
+  const T=t||(L==='en'?'this':'это');
   const m=(analyzeText(answer).metrics)||{};
-  const out=[];
-  if((m.dups||0)>0) out.push('Вы повторяли мои формулировки. Перескажите своими словами: что ещё вы помните в связи с «'+T+'»?');
-  if((m.negD||0)>=4) out.push('В ответе много отрицаний. Тогда что именно вы делали? Опишите свои действия по шагам.');
-  if((m.hedD||0)>=1.5) out.push('Появились оговорки («может быть», «кажется»). Давайте точность: что произошло на самом деле, по вашему честному ощущению?');
-  if((m.clm||0)>=1) out.push('Вы подчёркиваете свою честность — это нормально. Перейдём к фактам: назовите точное время и место, которые вы помните.');
-  if((m.detD||0)<0.6 && (m.nW||0)>=15) out.push('Добавьте конкретики: какие цифры, имена, даты или время суток вы помните в связи с «'+T+'»?');
-  if((m.emoD||0)<0.2 && (m.nW||0)>=15) out.push('Расскажите о чувствах: что вы почувствовали, когда это произошло? Как отреагировали?');
-  if(out.length<2) out.push('Какую деталь о «'+T+'» вы могли бы рассказать, но считаете, что я о ней не спросил?');
-  if(out.length<2) out.push('Опишите «'+T+'» с конца: что было в самом конце, что перед этим. Часто так вспоминать проще.');
+  const F=FU[L](T), out=[];
+  if((m.dups||0)>0) out.push(F.dups);
+  if((m.negD||0)>=4) out.push(F.neg);
+  if((m.hedD||0)>=1.5) out.push(F.hedge);
+  if((m.clm||0)>=1) out.push(F.claim);
+  if((m.detD||0)<0.6 && (m.nW||0)>=15) out.push(F.det);
+  if((m.emoD||0)<0.2 && (m.nW||0)>=15) out.push(F.emo);
+  const fb=FALLBACK_FU[L](T);
+  if(out.length<2) out.push(fb[0]);
+  if(out.length<2) out.push(fb[1]);
   return out.slice(0,3);
+}
+function verdictOfEn(score){
+  if(score<40) return 'Most likely truthful answers';
+  if(score<55) return 'Ambiguous: few clear markers';
+  if(score<70) return 'Signs of deception present';
+  return 'Many signs of deception';
 }
 </script>
 
@@ -1474,13 +1530,19 @@ function runCompare(){
 /* ---------- Интервью (v1.3) ---------- */
 let qState={topic:'',items:[],checked:0};
 
+let qLangPref='auto';
+document.querySelectorAll('#qLang .seg-b').forEach(b=>{
+  b.onclick=()=>{ qLangPref=b.dataset.l;
+    document.querySelectorAll('#qLang .seg-b').forEach(x=>x.classList.toggle('active',x===b)); };
+});
 function startInterview(){
   const topic=$('qTopic').value;
-  qState={topic:topic,items:[],checked:0};
+  const lang=interviewLang(topic,qLangPref);
+  qState={topic:topic,items:[],checked:0,lang:lang};
   $('qList').innerHTML='';
   $('qSummary').innerHTML='';
   $('qSumNote').textContent='';
-  for(const q of generateQuestions(topic)) addItem(q,false);
+  for(const q of generateQuestions(topic,lang)) addItem(q,false);
   $('qSummaryRow').style.display='flex';
 }
 function addItem(text,isFu,baseIdx){
@@ -1510,7 +1572,7 @@ function checkAnswer(idx,div,ta,btn){
   qState.items[idx].score=r.score;
   qState.items[idx].answer=ans;
   const col=r.score<40?'var(--good)':r.score<55?'var(--warn)':r.score<70?'var(--mid)':'var(--bad)';
-  const fus=genFollowUps(ans,qState.topic);
+  const fus=genFollowUps(ans,qState.topic,qState.lang);
   let html='<div class="qscore">Индекс ответа: <b style="color:'+col+'">'+Math.round(r.score)+'</b>/100 — '+r.verdict.title
     +' <span class="muted">(достоверность: '+r.confidence.label+', '+(r.metrics?r.metrics.nW:0)+' слов)</span></div>';
   const top=r.signals.filter(s=>s.side!=='info').sort((a,b)=>Math.abs(b.pts)-Math.abs(a.pts)).slice(0,3);
@@ -1537,7 +1599,9 @@ function checkAnswer(idx,div,ta,btn){
   qState.checked++;
   const done=qState.items.filter(i=>i.score!=null);
   const avg=done.length?Math.round(done.reduce((a,i)=>a+i.score,0)/done.length):null;
-  $('qSumNote').textContent='проверено ответов: '+qState.checked+(avg!=null?' • текущий средний индекс: '+avg+'/100':'');
+  $('qSumNote').textContent=qState.lang==='en'
+    ? 'answers checked: '+qState.checked+(avg!=null?' • current average index: '+avg+'/100':'')
+    : 'проверено ответов: '+qState.checked+(avg!=null?' • текущий средний индекс: '+avg+'/100':'');
 }
 function interviewSummary(){
   const items=qState.items.filter(i=>i.score!=null);
@@ -1545,33 +1609,39 @@ function interviewSummary(){
   const avg=items.reduce((a,i)=>a+i.score,0)/items.length;
   const v=verdictOf(avg);
   const col=VERDICT_COLOR[v.cls];
+  const en=qState.lang==='en';
+  const vTitle=en?verdictOfEn(avg):v.title;
+  const ql=en?'Q':'В';
   let html='<div class="result"><div class="gauge-box">'+gaugeHTML('qg')+'</div>'
-    +'<div class="verdict" style="color:'+col+'">Средний индекс ответов: '+v.title+'</div>'
-    +'<div class="conf">Тема: '+(qState.topic||'—')+' • проверено ответов: '+items.length+' • средний индекс: '+Math.round(avg)+'/100</div><div class="stats">';
+    +'<div class="verdict" style="color:'+col+'">'+(en?'Average answer index: ':'Средний индекс ответов: ')+vTitle+'</div>'
+    +'<div class="conf">'+(en?'Topic: ':'Тема: ')+(qState.topic||'—')+' • '+(en?'answers checked: ':'проверено ответов: ')+items.length+' • '+(en?'average index: ':'средний индекс: ')+Math.round(avg)+'/100</div><div class="stats">';
   items.forEach((it,k)=>{
     const c=it.score<40?'var(--good)':it.score<55?'var(--warn)':it.score<70?'var(--mid)':'var(--bad)';
-    html+='<div class="stat"><div class="k">В'+(k+1)+': '+it.text.slice(0,30)+(it.text.length>30?'…':'')+'</div><div class="v" style="color:'+c+'">'+Math.round(it.score)+'</div></div>';
+    html+='<div class="stat"><div class="k">'+ql+(k+1)+': '+it.text.slice(0,30)+(it.text.length>30?'…':'')+'</div><div class="v" style="color:'+c+'">'+Math.round(it.score)+'</div></div>';
   });
-  html+='</div><button class="btn" style="margin-top:12px" onclick="exportInterview()">📋 Сохранить отчёт интервью (.txt)</button></div>';
+  html+='</div><button class="btn" style="margin-top:12px" onclick="exportInterview()">📋 '+(en?'Save interview report (.txt)':'Сохранить отчёт интервью (.txt)')+'</button></div>';
   $('qSummary').innerHTML=html;
-  setGauge('qg',avg,v,'средний индекс ответов 0–100');
+  setGauge('qg',avg,v,en?'average answer index 0–100':'средний индекс ответов 0–100');
   $('qSummary').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function exportInterview(){
   const items=qState.items.filter(i=>i.score!=null);
   const avg=items.length? items.reduce((a,i)=>a+i.score,0)/items.length : 50;
   const v=verdictOf(avg);
-  const L=['Детектор лжи AI — интервью','Дата: '+new Date().toLocaleString('ru-RU'),''];
-  L.push('Тема: '+(qState.topic||'—'));
-  L.push('Средний индекс ответов: '+Math.round(avg)+'/100 — '+v.title);
+  const en=qState.lang==='en';
+  const L=[en?'Deception Detector AI — Interview':'Детектор лжи AI — интервью',
+    (en?'Date: ':'Дата: ')+new Date().toLocaleString(en?'en-US':'ru-RU'),''];
+  L.push((en?'Topic: ':'Тема: ')+(qState.topic||'—'));
+  L.push((en?'Average answer index: ':'Средний индекс ответов: ')+Math.round(avg)+'/100 — '+(en?verdictOfEn(avg):v.title));
   L.push('');
   items.forEach((it,k)=>{
-    L.push('В'+(k+1)+': '+it.text);
-    L.push('  Ответ: '+it.answer.replace(/\s+/g,' ').slice(0,400));
-    L.push('  Индекс: '+Math.round(it.score)+'/100');
+    L.push((en?'Q':'В')+(k+1)+': '+it.text);
+    L.push('  '+(en?'Answer: ':'Ответ: ')+it.answer.replace(/\s+/g,' ').slice(0,400));
+    L.push('  '+(en?'Index: ':'Индекс: ')+Math.round(it.score)+'/100');
   });
   L.push('');
-  L.push('⚠️ Результат — не заключение о человеке, а только статистические маркеры.');
+  L.push(en?'⚠️ The result is not a judgment about a person, only statistical markers.'
+           :'⚠️ Результат — не заключение о человеке, а только статистические маркеры.');
   exportResult(L);
 }
 
