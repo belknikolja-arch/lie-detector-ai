@@ -83,6 +83,14 @@ canvas.wave{width:100%;height:150px;background:var(--card2);border:1px solid var
 .hist-date{color:var(--muted);flex:0 0 100px;font-size:12px}
 .hist-ex{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hist-act{color:var(--acc)}
+.hist-ic{flex:0 0 18px;text-align:center}
+.gauge path{transition:stroke-dasharray .9s ease}
+.marks{margin-top:14px;padding:12px 14px;background:var(--card2);border:1px solid var(--line);border-radius:12px;font-size:14px;line-height:1.9}
+.mk{padding:1px 4px;border-radius:4px}
+.mk.claim{background:rgba(249,115,22,.16);box-shadow:inset 0 -2px 0 var(--mid)}
+.mk.neg{background:rgba(239,68,68,.14);box-shadow:inset 0 -2px 0 var(--bad)}
+.mk.hedge{background:rgba(234,179,8,.14);box-shadow:inset 0 -2px 0 var(--warn)}
+.mk.det{background:rgba(34,197,94,.12);box-shadow:inset 0 -2px 0 var(--good)}
 input.qtopic{background:var(--card2);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:11px 14px;font-size:14.5px;flex:1;min-width:240px}
 .qitem{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
 .qitem.fu{border-style:dashed}
@@ -107,7 +115,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 <body>
 <div class="wrap">
 
-  <h1>🕵️ Детектор лжи <span class="badge">AI v1.3 • эксперимент</span></h1>
+  <h1>🕵️ Детектор лжи <span class="badge">AI v1.4 • эксперимент</span></h1>
   <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
 
   <div class="strip">
@@ -201,27 +209,29 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <li><b>Дистанцирование</b> — лжецы чаще избегают «я» и перекладывают субъектность.</li>
       <li><b>Конкретика</b> — правдивые повествования богаче деталями: цифры, даты, имена, время суток. Ложь обычно «плывёт» по абстракциям.</li>
       <li><b>Эмоциональная бедность</b> — меньше эмоциональной лексики в обмане (теория penance markers: честный человек «выплачивает» эмоции).</li>
-      <li><b>Эхо</b> — дословное повторение чужих формулировок (4-грамм) — признак «пересборки» ответа.</li>
+      <li><b>Эхо</b> — дословное повторение чужих формулировок — признак «пересборки» ответа.</li>
+      <li><b>Размытые указания</b> (v1.4) — «где-то», «кто-то», «на днях»: уклонение от проверяемых привязок. <b>Повышенная интенсивность</b> (v1.4) — всплески восклицаний и выделенных слов, часто сопровождающие оборонительную манеру.</li>
+      <li><b>Подсветка предложений</b> (v1.4) — в результате каждое предложение размечено: заверения, отрицания, оговорки, конкретика.</li>
     </ul>
 
     <h4>Анализ голоса</h4>
     <ul>
-      <li>Из аудио прямо в браузере (Web Audio API) извлекаются: <b>высота тона (F0)</b>, его <b>вариативность</b> и <b>микрофлуктуации</b>, доля <b>пауз</b>, <b>динамика энергии</b>.</li>
+      <li>Из аудио прямо в браузере (Web Audio API) извлекаются: <b>высота тона (F0)</b>, его <b>вариативность</b> и <b>микрофлуктуации</b>, доля <b>пауз</b>, <b>динамика энергии</b>, <b>ритм речи</b> (запуски/остановки в секунду) и <b>тренд интонации</b> (v1.4). График показывает осциллограмму, линию тона и затемнённые паузы.</li>
       <li>В мета-анализе DePaulo (2003) лишь два паравербальных признака показали значимую, но <i>слабую</i> связь с ложью: высота тона и вокальное напряжение. Поэтому веса акустических признаков здесь намеренно малы.</li>
       <li>«Анализ стресса голоса» (VSA), на котором раньше строились коммерческие системы, научным сообществом <b>не подтверждён</b> — мы повторяем эту осторожность.</li>
-      <li><b>Сравнение с эталоном</b> — внутриличностный контроль: задаётся голос человека в обычном состоянии, а система показывает расхождения в высоте тона, микрофлуктуациях, паузах и энергии (индекс отклонения 0–100: F0 30%, микрофлуктуации 25%, паузы 25%, энергия 20%). Это снимает влияние «штатных» особенностей голоса, но изменения вызывают и стресс, усталость, болезнь — поэтому вклад эталона в итоговый индекс ограничен (макс. +2.5 пункта).</li>
+      <li><b>Сравнение с эталоном</b> — внутриличностный контроль: задаётся голос человека в обычном состоянии, а система показывает расхождения в высоте тона, микрофлуктуациях, паузах, энергии, ритме и тренде интонации (веса v1.4: F0 25%, микрофлуктуации 18%, паузы 18%, энергия 15%, ритм 14%, тренд 10%; старые эталоны без новых метрик поддерживаются). Система сама напоминает о возрасте эталона (старше 7 дней) и его короткости. Вклад эталона в итоговый индекс ограничен (макс. +2.5 пункта). Это снимает влияние «штатных» особенностей голоса, но изменения вызывают и стресс, усталость, болезнь.</li>
     </ul>
 
     <h4>Сравнение двух версий (v1.2)</h4>
     <ul>
-      <li>Из каждой версии извлекаются структурированные детали — цифры, время, даты, временной каркас (день, время суток), лица — и показываются расхождения и общие точки. Индекс согласованности: штраф за расхождение дня 25, цифр до 20, времени/дат по 15, времени суток 15, лиц до 15.</li>
+      <li>Из каждой версии извлекаются структурированные детали — цифры, время, даты, временной каркас (день, время суток), лица — и показываются расхождения и общие точки. С v1.4 — два сильных сигнала: <b>«отрицание vs утверждение»</b> (слово отрицается в одной версии и утверждается в другой — расхождение по самому факту, штраф до 25) и <b>перекрываемость лексики</b> (коэффициент общих слов; меньше 20% при достаточном объёме — пометка «разные по существу»). Индекс согласованности: штраф за расхождение дня 25, полярности до 25, цифр до 20, времени/дат по 15, времени суток 15, лиц до 15, низкого совпадения 10.</li>
       <li>Исследовательская база: «стабильность версии» (Vrij, методика PEACE) — при повторном рассказе версии лжецов в среднем менее согласованы, чем правдивые, но эффект слабый и сильно зависит от контекста.</li>
       <li>Расхождение ≠ ложь: память по-настоящему «пересобирается» между рассказами. Используйте найденные расхождения, чтобы сфокусировать проверку фактов.</li>
     </ul>
 
     <h4>Интервью: генератор вопросов (v1.3)</h4>
     <ul>
-      <li>Стартовые вопросы — открытые, в духе PEACE (полное рассказывание, время, место, последовательность, другие свидетели, память, чувства). Уточняющие вопросы генерируются по маркерам ответа: много отрицаний → «что именно вы делали?», оговорки → «давайте точность», мало конкретики → «какие цифры, имена, время?», эхо → «перескажите своими словами».</li>
+      <li>Стартовые вопросы — открытые, в духе PEACE (полное рассказывание, время, место, последовательность, другие свидетели, память, чувства). Уточняющие вопросы генерируются по маркерам ответа: много отрицаний → «что именно вы делали?», оговорки → «давайте точность», мало конкретики → «какие цифры, имена, время?», эхо → «перескажите своими словами». С v1.4: живой средний индекс по ходу интервью, лимит 2 уточнений на вопрос (от переувеличения) и видимое предупреждение о коротких ответах.</li>
       <li>Логика: в свободном рассказе лжецу сложнее держать версию согласованной, а уточнения направляют проверку в слабые места <b>фактов</b>. Это инструмент структурирования разговора, а не «ловушка».</li>
     </ul>
 
@@ -236,7 +246,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI v1.3 (текст • голос • эталон • две версии • интервью) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.4 (текст с подсветкой • голос с ритмом и трендом • эталон расширен • две версии с полярностью • интервью с живым баллом) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
 
 <script id="core">
@@ -257,7 +267,8 @@ ru:{
   self:['я','меня','мне','мои','мой','моя','моё','моей','моим','мной','мне-то','мой-то','свой','себя','собственной'],
   emo:['страшно','боюсь','боились','испуган','испугана','испугался','испугалась','любовь','люблю','ненавижу','ненавидел','ненавидит','рад','рада','грустно','грущу','обидно','обиделся','обиделась','злюсь','злость','злится','печально','счастлив','счастлива','счастье','взволнован','взволнована','волнуюсь','волнуется','переживаю','переживает','плачу','плакал','плакала','ярость','бесит','бесило','раздражает','раздражение','тоска','тоскливо','паника','тревога','тревожно','весело','смешно','смех','жалко','жалела','удивительно','удивлён','шок','ужас','ужасно','стыдно','стыд','виноват','виновата','виновность','расстроен','расстроена','грусть','обида','настроение','чувствую','ощущаю','эмоция'],
   time:['вчера','сегодня','завтра','позавчера','утром','вечером','ночью','днём','на прошлой неделе','на этой неделе','неделю назад','месяц назад','год назад','в пятницу','в субботу','в воскресенье','в понедельник','во вторник','в среду','в четверг','с утра','до обеда','после обеда'],
-  money:['рубл','руб.','руб','тысяч','миллион','доллар','евро','грн','валют']
+  money:['рубл','руб.','руб','тысяч','миллион','доллар','евро','грн','валют'],
+  indif:['где-то','кто-то','что-то','кого-то','кому-то','кему-то','что-нибудь','кто-нибудь','где-нибудь','как-то','недавно','на днях','давно','когда-то','где нибудь','кто нибудь','что нибудь','какой-то','какая-то','какое-то','какие-то','какой то']
 },
 en:{
   neg:['not','no','never','neither','nobody','nothing','nowhere','nor','don\'t',"didn't",'can\'t',"couldn't",'won\'t',"wasn't",'isn\'t',"aren't",'none','hardly','barely','refuse','refused'],
@@ -266,7 +277,8 @@ en:{
   self:['i','me','my','mine','myself'],
   emo:['love','hate','fear','afraid','scared','terrified','happy','sad','angry','furious','excited','worried','anxious','ashamed','guilty','pleased','disappointed','shocked','heartbroken','nervous','upset','jealous','proud','relieved','emotion','feel','feeling'],
   time:['yesterday','today','tomorrow','last night','this morning','last week','next week','monday','tuesday','wednesday','thursday','friday','saturday','sunday','morning','afternoon','evening','night'],
-  money:['dollar','euro','pound','ruble','thousand','million']
+  money:['dollar','euro','pound','ruble','thousand','million'],
+  indif:['somewhere','someone','somebody','something','anyone','anything','anywhere','recently','sometime','a while','or so','some time ago']
 }
 };
 
@@ -352,11 +364,12 @@ function verdictOf(score){
   if(score<70) return {title:'Есть признаки обмана',cls:'mid'};
   return {title:'Много признаков обмана',cls:'bad'};
 }
-function confidenceOfWords(nW){
-  if(nW>=120) return {label:'высокая',level:3};
-  if(nW>=60)  return {label:'средняя',level:2};
-  if(nW>=25)  return {label:'низкая',level:1};
-  return {label:'очень низкая',level:0};
+function confidenceOfWords(nW,nSig){
+  let level=nW>=120?3:(nW>=60?2:(nW>=25?1:0));
+  if(nSig>=5&&level<2) level++;
+  if(nSig<=1&&level>0) level--;
+  const labels=['очень низкая','низкая','средняя','высокая'];
+  return {label:labels[level],level:level};
 }
 
 /* ---------------- Анализ текста ---------------- */
@@ -434,6 +447,22 @@ function analyzeText(raw){
     signals.push(sig('lie',1.2,'Эмоционально бедно','Эмоциональная лексика почти отсутствует. Обман нередко лишён эмоционального «выплатного» компонента.'));
   }
 
+  // 6b. Неопределённые указания
+  const ind=countList(tokens,L.indif);
+  const indD=ind*d100;
+  if(!SHORT&&indD>=0.8){
+    const pts=Math.min(2,(indD-0.8)*2+1);
+    signals.push(sig('lie',pts,'Размытые указания','Неопределённых слов: '+ind+' ('+indD.toFixed(1)+' на 100 слов). «Где-то», «кто-то», «на днях» — способ уклониться от конкретной, проверяемой привязки.'));
+  }
+  // 6c. Интенсивность (восклицания и капс)
+  const excl=(text.match(/!/g)||[]).length;
+  const capsSet=new Set(properNouns(text));
+  const caps=(text.match(/\b[A-ZА-ЯЁ]{4,}\b/g)||[]).filter(w=>!capsSet.has(w)).length;
+  if(!SHORT&&nW>=15&&(excl>=2||caps>=2)){
+    const pts=Math.min(1.5,0.8+(excl-1)*0.3+caps*0.4);
+    signals.push(sig('lie',pts,'Повышенная интенсивность','Восклицательных знаков: '+excl+', выделенных слов: '+caps+'. Агрессивно-оборонительная интонация часто сопровождает излишние заверения — слабый маркер.'));
+  }
+
   // 7. Эхо фраз
   const dups=findRepeats(tokens,lang);
   if(dups.length){
@@ -453,9 +482,9 @@ function analyzeText(raw){
   let score=50;
   for(const s of signals){ if(s.side==='lie') score+=s.pts; else if(s.side==='truth') score-=s.pts; }
   score=clamp(score,5,95);
-  return {score:score,verdict:verdictOf(score),confidence:confidenceOfWords(nW),lang:lang,nWords:nW,signals:signals,
+  return {score:score,verdict:verdictOf(score),confidence:confidenceOfWords(nW,signals.filter(sx=>sx.side!=='info').length),lang:lang,nWords:nW,signals:signals,
     stats:{sentences:sentences,avgLen:avgLen,det:det},
-    metrics:{negD:negD,hedD:hedD,clm:clm,selfD:selfD,detD:detD,emoD:emoD,avgLen:avgLen,dups:dups.length,nW:nW}};
+    metrics:{negD:negD,hedD:hedD,clm:clm,selfD:selfD,detD:detD,emoD:emoD,indD:indD,excl:excl,caps:caps,avgLen:avgLen,dups:dups.length,nW:nW}};
 }
 
 /* ---------------- Анализ голоса ---------------- */
@@ -548,6 +577,23 @@ async function analyzeVoiceBuffer(audioBuffer){
   }
   const energyTrend=e1n>0&&e2n>0?(e2/e2n)/(e1/e1n):1;
   const rmsDb=maxRms>0?20*Math.log10(maxRms): -90;
+  // ритм: количество запусков/остановок речи в секунду
+  let trans=0;
+  for(let i=1;i<nF;i++) if((rmsA[i]>thr)!==(rmsA[i-1]>thr)) trans++;
+  const segSec=Math.max(0.001,segLen*HOP/SR);
+  const rhythm=trans/segSec;
+  // тренд интонации: средний тон второй половины относительно первой (%)
+  let f0slope=0;
+  if(vf.length>=10){
+    const half=Math.floor(vf.length/2);
+    let s1=0,s2=0;
+    for(let k=0;k<half;k++) s1+=f0s[vf[k]];
+    for(let k=half;k<vf.length;k++) s2+=f0s[vf[k]];
+    const mm1=s1/half, mm2=s2/(vf.length-half);
+    if(mm1>0) f0slope=(mm2/mm1-1)*100;
+  }
+  const pauseMask=new Uint8Array(nF);
+  for(let i=0;i<nF;i++) pauseMask[i]=rmsA[i]<=thr?1:0;
 
   const signals=[];
   let score=50;
@@ -584,6 +630,11 @@ async function analyzeVoiceBuffer(audioBuffer){
       score+=pts;
       signals.push(sig('lie',pts,'Голос слабее к концу','Энергия во второй половине фразы падает в '+(1/energyTrend).toFixed(1)+' раза — признак срыва «напряжения». Особой диагностической силы не имеет, учтён слегка.'));
     }
+    if(rhythm>4.5 && voicedSec>8){
+      const pts=1.5;
+      score+=pts;
+      signals.push(sig('lie',pts,'Рваный ритм речи','Запусков/остановок речи: '+rhythm.toFixed(1)+' в секунду. Спешившийся, прерывистый ритм — слабый маркер, но давать его стоит вместе с остальными.'));
+    }
   }
 
   score=clamp(score,5,95);
@@ -594,8 +645,8 @@ async function analyzeVoiceBuffer(audioBuffer){
     : {label:'высокая',level:3};
 
   return {score:score,verdict:verdictOf(score),confidence:conf,
-    metrics:{duration:total,voicedSec:voicedSec,f0mean:f0mean,relVar:relVar,jitter:jitter,pauseRatio:pauseRatio,rmsDb:rmsDb,energyTrend:energyTrend},
-    signals:signals,data:data,f0s:f0s,frame:FRAME,hop:HOP};
+    metrics:{duration:total,voicedSec:voicedSec,f0mean:f0mean,relVar:relVar,jitter:jitter,pauseRatio:pauseRatio,rmsDb:rmsDb,energyTrend:energyTrend,rhythm:rhythm,f0slope:f0slope},
+    signals:signals,data:data,f0s:f0s,frame:FRAME,hop:HOP,pauseMask:pauseMask};
 }
 
 /* Сравнение метрик с эталоном голоса (базовая линия). Чистая функция. */
@@ -613,18 +664,59 @@ function compareVoiceMetrics(base,cur){
   const fmtHz=v=>v.toFixed(0)+' Гц';
   const fmtPct=v=>(v*100).toFixed(0)+'%';
   const fmtDb=v=>v.toFixed(0)+' дБ';
-  const row=(name,r,unit)=>({name:name,na:!!r.na,devPct:r.na?0:r.devPct,norm:r.na?0:r.norm,
+  const fmtRh=v=>v.toFixed(1)+' обр/с';
+  const fmtSl=v=>(v>0?'+':'')+v.toFixed(0)+'%';
+  const row=(name,r,unit,w)=>({name:name,na:!!r.na,devPct:r.na?0:r.devPct,norm:r.na?0:r.norm,weight:w,
     base:r.na?'—':r.baseTxt,cur:r.na?'—':r.curTxt,devUnit:r.na?unit:(r.devUnit||unit)});
   const f0=rel(base.f0mean,cur.f0mean,25,fmtHz);
   const rv=rel(base.relVar,cur.relVar,100,fmtPct);
   const jt=rel(base.jitter,cur.jitter,100,fmtPct);
   const pa=absD(base.pauseRatio,cur.pauseRatio,0.20,'pp',fmtPct);
   const en=absD(base.rmsDb,cur.rmsDb,10,'db',fmtDb);
-  const rows=[row('Средний тон',f0,'%'),row('Вариативность тона',rv,'%'),
-              row('Микрофлуктуации',jt,'%'),row('Паузы',pa,'pp'),row('Энергия',en,'db')];
-  // Индекс отклонения: F0 30%, микрофлуктуации 25%, паузы 25%, энергия 20%
-  const idx=Math.round(100*Math.min(1,0.30*rows[0].norm+0.25*rows[2].norm+0.25*rows[3].norm+0.20*rows[4].norm));
+  const rh=rel(base.rhythm,cur.rhythm,0.6,fmtRh);
+  const sl=absD(base.f0slope,cur.f0slope,30,'pp',fmtSl);
+  // веса: F0 25%, микрофлуктуации 18%, паузы 18%, энергия 15%, ритм 14%, тренд 10%; «насыщенность» — справочно
+  const rows=[row('Средний тон',f0,'%',25),row('Насыщенность тона',rv,'%',0),
+              row('Микрофлуктуации',jt,'%',18),row('Паузы',pa,'pp',18),row('Энергия',en,'db',15),
+              row('Ритм речи',rh,'pp',14),row('Тренд интонации',sl,'pp',10)];
+  let ws=0,ns=0;
+  for(const r of rows) if(!r.na&&r.weight>0){ ws+=r.weight; ns+=r.weight*r.norm; }
+  const idx=ws>0?Math.round(100*Math.min(1,ns/ws)):0;
   return {rows:rows,index:idx,reliable:(base.voicedSec>=3&&cur.voicedSec>=3)};
+}
+
+/* Отрицание слова: есть ли не/нет/ни... в 3 токенах до него */
+function negationMap(tokens,lang){
+  const NEG= lang==='ru'
+    ? new Set(['не','нет','ни','никак','нисколько','никогда','ничего','никто'])
+    : new Set(["not","no","never","neither","don't","didn't","can't","cannot","isn't","wasn't","hasn't","haven't","nope"]);
+  const map=new Map();
+  for(let i=0;i<tokens.length;i++){
+    const t=tokens[i];
+    if(t.length<4||STOP[lang].has(t)) continue;
+    let negated=false;
+    for(let j=Math.max(0,i-3);j<i;j++) if(NEG.has(tokens[j])) negated=true;
+    const e=map.get(t)||{neg:0,pos:0};
+    if(negated) e.neg++; else e.pos++;
+    map.set(t,e);
+  }
+  return map;
+}
+
+/* Подсветка предложений: наборы маркеров локально */
+function classifySentences(text,lang){
+  const parts=text.split(/(?<=[.!?…])\s+/).filter(p=>p.trim().length>0);
+  return parts.map(p=>{
+    const toks=tokenize(p);
+    if(toks.length<3) return {t:p,cls:''};
+    const m=(analyzeText(p).metrics)||{};
+    let cls='';
+    if((m.clm||0)>=1) cls='claim';
+    else if((m.negD||0)>=8) cls='neg';
+    else if((m.hedD||0)>=3) cls='hedge';
+    else if((m.detD||0)>=6) cls='det';
+    return {t:p,cls:cls};
+  });
 }
 
 /* ---------------- Сравнение двух версий (v1.2) ---------------- */
@@ -745,6 +837,30 @@ function compareStatements(rawA,rawB){
       a:nOnlyA.join(', ')||'—', b:nOnlyB.join(', ')||'—',
       detail:'Не прямое противоречие: в одной версии фигурирует имя, которого нет в другой (человек или место). Стоит проверить, кто/что именно причастно.'});
   } else if(pA.length&&pA.every(x=>pB.some(y=>sameName(x,y,lang)))){ matches.push('Одинаковые имена в версиях: '+pA.join(', ')); }
+  // отрицание vs утверждение — сильнейшее расхождение
+  const mNegA=negationMap(ta,lang), mNegB=negationMap(tb,lang);
+  const polarity=[];
+  for(const [w,eA] of mNegA){
+    const eB=mNegB.get(w);
+    if(!eB) continue;
+    if(eA.neg>0&&eA.pos===0&&eB.pos>0&&eB.neg===0) polarity.push({w:w,dir:'А отрицает, Б утверждает'});
+    else if(eB.neg>0&&eB.pos===0&&eA.pos>0&&eA.neg===0) polarity.push({w:w,dir:'А утверждает, Б отрицает'});
+  }
+  if(polarity.length){
+    conflicts.push({type:'Отрицание vs утверждение',pts:Math.min(25,10+polarity.length*5),a:'—',b:'—',
+      detail:'Самый сильный тип расхождения: «'+polarity.slice(0,4).map(x=>x.w+' ('+x.dir+')').join(', ')+'». Версии противоречат по самому факту — не по деталям, а по тому, было ли это вообще.'});
+  }
+  // перекрываемость лексики
+  const wA=new Set(ta.filter(t=>t.length>3&&!STOP[lang].has(t)));
+  const wB=new Set(tb.filter(t=>t.length>3&&!STOP[lang].has(t)));
+  let inter=0; for(const w of wA) if(wB.has(w)) inter++;
+  const union=wA.size+wB.size-inter;
+  const overlap=union?Math.round(inter/union*100):0;
+  matches.push('Перекрываемость лексики версий: '+overlap+'%');
+  if(overlap<20&&wA.size>=8&&wB.size>=8){
+    conflicts.push({type:'Низкое совпадение',pts:10,a:overlap+'%',b:'—',
+      detail:'Версии почти не делят общую лексику — рассказы различаются по существу. Это не обязательно ложь, но согласованность стоит проверить по фактам.'});
+  }
   // общие точки
   const common=common3grams(ta,tb,lang);
   if(common.length) matches.push('Общие формулировки в версиях: '+common.map(c=>'«'+c+'»').join(', '));
@@ -876,7 +992,7 @@ function runTextAnalysis(){
   const raw=$('txtInput').value;
   if(!raw.trim()){ flashError($('textResult'),'Сначала вставьте текст для анализа.'); return; }
   const r=analyzeText(raw);
-  pushHistory({date:Date.now(),text:raw.trim(),score:r.score,verdict:r.verdict.title});
+  pushHistory({type:'text',date:Date.now(),text:raw.trim(),score:r.score,verdict:r.verdict.title});
   const el=$('textResult');
   el.innerHTML='';
   const box=document.createElement('div'); box.className='result';
@@ -893,10 +1009,26 @@ function runTextAnalysis(){
     ['Деталей',d.total],['Цифр',d.nums],['Дат/времени',(d.dates+d.clock)],['Имен',d.proper]
   ].map(x=>'<div class="stat"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
   $('tStats').innerHTML=statHTML;
+  if(r.nWords>=15){
+    const segs=classifySentences(raw.trim(),r.lang);
+    const wrap=document.createElement('div');
+    const mk=document.createElement('div'); mk.className='marks';
+    segs.forEach(sg=>{
+      const sp=document.createElement('span');
+      sp.className='mk '+(sg.cls||'');
+      sp.textContent=sg.t;
+      mk.appendChild(sp);
+      mk.appendChild(document.createTextNode(' '));
+    });
+    const leg=document.createElement('div'); leg.className='hint';
+    leg.textContent='Подсветка предложений: оранжевое — заверения в честности, красное — отрицания, жёлтое — оговорки, зелёное — конкретные детали.';
+    wrap.appendChild(mk); wrap.appendChild(leg);
+    $('tStats').insertAdjacentElement('afterend',wrap);
+  }
   renderSignals($('tSignals'),r.signals);
   const eb=document.createElement('button'); eb.className='btn'; eb.style.marginTop='12px';
   eb.textContent='📋 Сохранить отчёт (.txt)';
-  eb.onclick=()=>exportResult(textExportLines(r));
+  attachExport(eb,textExportLines(r));
   box.appendChild(eb);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -921,7 +1053,7 @@ function voiceExportLines(r,cmp){
   const L=['Детектор лжи AI — анализ голоса','Дата: '+new Date().toLocaleString('ru-RU'),''];
   L.push('Индекс обмана: '+Math.round(r.score)+'/100 — '+r.verdict.title);
   L.push('Достоверность: '+r.confidence.label+' (речи: '+m.voicedSec.toFixed(1)+' с из '+m.duration.toFixed(0)+' с)');
-  L.push('Средний тон: '+(m.f0mean>0?m.f0mean.toFixed(0)+' Гц':'—')+' • вариативность: '+(m.relVar*100).toFixed(0)+'% • микрофлуктуации: '+(m.jitter*100).toFixed(1)+'% • паузы: '+(m.pauseRatio*100).toFixed(0)+'%');
+  L.push('Средний тон: '+(m.f0mean>0?m.f0mean.toFixed(0)+' Гц':'—')+' • вариативность: '+(m.relVar*100).toFixed(0)+'% • микрофлуктуации: '+(m.jitter*100).toFixed(1)+'% • паузы: '+(m.pauseRatio*100).toFixed(0)+'%'+(m.rhythm!=null?' • ритм: '+m.rhythm.toFixed(1)+' обр/с':'')+(m.f0slope!=null?' • тренд: '+(m.f0slope>0?'+':'')+m.f0slope.toFixed(0)+'%':''));
   L.push('','Маркеры:');
   for(const s of r.signals){
     const tag=s.side==='lie'?'обмана':s.side==='truth'?'правды':'св.';
@@ -948,6 +1080,14 @@ function compareExportLines(r){
   L.push('');
   for(const n of r.notes) L.push('Примечание: '+n);
   return L;
+}
+function attachExport(btn,lines){
+  btn.onclick=()=>{
+    exportResult(lines);
+    const old=btn.textContent;
+    btn.textContent='✓ Сохранено и скопировано';
+    setTimeout(()=>{btn.textContent=old;},2200);
+  };
 }
 function exportResult(lines){
   const txt=lines.join('\n');
@@ -978,20 +1118,29 @@ function clearHistory(){
 function renderHistory(){
   const el=$('histList'); if(!el) return;
   const h=getHistory();
-  if(!h.length){ el.innerHTML='<span class="muted" style="font-size:12.5px">Анализов пока нет. Клик по записи — повторный анализ.</span>'; return; }
+  if(!h.length){ el.innerHTML='<span class="muted" style="font-size:12.5px">Анализов пока нет. Клик по текстовому анализу — повторный анализ.</span>'; return; }
   el.innerHTML='';
+  const icon={text:'📝',voice:'🎙',cmp:'⚖️'};
   for(const it of h){
     const d=new Date(it.date);
     const col=it.score<40?'var(--good)':it.score<55?'var(--warn)':it.score<70?'var(--mid)':'var(--bad)';
     const row=document.createElement('div'); row.className='hist-row';
+    const ic=document.createElement('span'); ic.className='hist-ic'; ic.textContent=icon[it.type]||'📝';
     const sc=document.createElement('span'); sc.className='hist-score'; sc.style.color=col; sc.textContent=Math.round(it.score);
     const dt=document.createElement('span'); dt.className='hist-date';
     dt.textContent=d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    const raw=it.extra||it.text||'';
     const ex=document.createElement('span'); ex.className='hist-ex';
-    ex.textContent=it.text.replace(/\s+/g,' ').slice(0,70)+(it.text.length>70?'…':'');
-    const ar=document.createElement('span'); ar.className='hist-act'; ar.textContent='↺';
-    row.appendChild(sc); row.appendChild(dt); row.appendChild(ex); row.appendChild(ar);
-    row.onclick=()=>{ $('txtInput').value=it.text; runTextAnalysis(); };
+    ex.textContent=raw.replace(/\s+/g,' ').slice(0,70)+(raw.length>70?'…':'');
+    row.appendChild(ic); row.appendChild(sc); row.appendChild(dt); row.appendChild(ex);
+    if(it.type==='text'){
+      row.style.cursor='pointer'; row.title='Повторить анализ';
+      const ar=document.createElement('span'); ar.className='hist-act'; ar.textContent='↺';
+      row.appendChild(ar);
+      row.onclick=()=>{ $('txtInput').value=it.text; runTextAnalysis(); };
+    } else {
+      row.title='Просмотрная запись (исходный материал не сохраняется)';
+    }
     el.appendChild(row);
   }
 }
@@ -1038,9 +1187,13 @@ async function runVoiceAnalysis(buffer){
       ['Вариативность тона',(m.relVar*100).toFixed(0)+'%'],
       ['Микрофлуктуации',(m.jitter*100).toFixed(1)+'%'],
       ['Паузы',(m.pauseRatio*100).toFixed(0)+'%'],
-      ['Энергия',m.rmsDb.toFixed(0)+' дБ']
+      ['Энергия',m.rmsDb.toFixed(0)+' дБ'],
+      ['Ритм',m.rhythm!=null?m.rhythm.toFixed(1)+' обр/с':'—'],
+      ['Тренд тона',m.f0slope!=null?(m.f0slope>0?'+':'')+m.f0slope.toFixed(0)+'%':'—']
     ].map(x=>'<div class="stat"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
     $('vStats').innerHTML=statHTML;
+    pushHistory({type:'voice',date:Date.now(),score:r.score,verdict:r.verdict.title,
+      extra:'голос: '+(m.f0mean>0?m.f0mean.toFixed(0)+' Гц':'—')+', паузы '+(m.pauseRatio*100).toFixed(0)+'%'});
     // сравнение с эталоном (если задан)
     const base=getBaseline();
     if(base){
@@ -1056,12 +1209,13 @@ async function runVoiceAnalysis(buffer){
           setGauge('vg',r.score,r.verdict); $('vVerdict').innerHTML=verdictHTML(r.verdict);
         }
       }
-      $('vSignals').insertAdjacentHTML('beforebegin',renderComparison(cmp));
+      pushHistory({type:'cmp',date:Date.now(),score:50,verdict:'сравнение с эталоном',extra:'эталон: индекс отклонения '+cmp.index+'/100'});
+      $('vSignals').insertAdjacentHTML('beforebegin',renderComparison(cmp,base));
     }
     renderSignals($('vSignals'),r.signals);
     const evb=document.createElement('button'); evb.className='btn'; evb.style.marginTop='12px';
     evb.textContent='📋 Сохранить отчёт (.txt)';
-    evb.onclick=()=>exportResult(voiceExportLines(r, base?compareVoiceMetrics(base,r.metrics):null));
+    attachExport(evb,voiceExportLines(r, base?compareVoiceMetrics(base,r.metrics):null));
     box.appendChild(evb);
   }catch(err){
     out.innerHTML='';
@@ -1069,7 +1223,7 @@ async function runVoiceAnalysis(buffer){
   }
 }
 
-function renderComparison(cmp){
+function renderComparison(cmp,base){
   const rows=cmp.rows.map(r=>{
     if(r.na) return '<div class="cmp-row"><span class="cmp-name">'+r.name+'</span><span class="cmp-vals muted">нет данных</span><span class="cmp-dev muted">—</span></div>';
     const col=Math.abs(r.devPct)<10?'var(--good)':Math.abs(r.devPct)<25?'var(--warn)':'var(--bad)';
@@ -1080,9 +1234,14 @@ function renderComparison(cmp){
       :sign+r.devPct.toFixed(0)+'%';
     return '<div class="cmp-row"><span class="cmp-name">'+r.name+'</span><span class="cmp-vals">'+r.base+' → <b>'+r.cur+'</b></span><span class="cmp-dev" style="color:'+col+'">'+arrow+' '+devTxt+'</span></div>';
   }).join('');
-  const note=cmp.reliable
+  let note=cmp.reliable
     ? 'Относительный показатель: эталон учитывает индивидуальные особенности голоса, но изменения вызывают и стресс, усталость, болезнь, смена голоса у микрофона.'
     : '⚠️ В эталоне или анализе меньше 3 с речи — сравнение ненадёжное, в итоговый индекс не добавлено.';
+  if(base&&base.createdAt){
+    const days=(Date.now()-new Date(base.createdAt).getTime())/86400000;
+    if(days>7) note+=' <br>🕰 Эталону '+days.toFixed(0)+' дн. — голос может естественным образом меняться (состояние, здоровье, микрофон).';
+    if((base.voicedSec||0)<10) note+=' <br>Эталон короткий (меньше 10 с речи) — сравнение менее надёжное, обновите его.';
+  }
   return '<div class="cmp"><div class="cmp-head"><h3>📐 Сравнение с эталоном</h3><span class="cmp-index">Индекс отклонения: <b>'+cmp.index+'</b>/100</span></div>'
     +rows
     +'<div class="hint" style="margin-top:8px">'+note+'</div></div>';
@@ -1113,15 +1272,26 @@ function drawWave(r){
     const a=mxv/mx*mid*0.92, b=-mn/mx*mid*0.92;
     ctx.beginPath(); ctx.moveTo(px+0.5,mid-a); ctx.lineTo(px+0.5,mid+b); ctx.stroke();
   }
-  // контур F0
-  ctx.fillStyle='rgba(239,68,68,.9)';
+  // затемнение пауз
+  if(r.pauseMask){
+    ctx.fillStyle='rgba(0,0,0,.3)';
+    for(let i=0;i<r.pauseMask.length;i++){
+      if(!r.pauseMask[i]) continue;
+      const x0=i*r.hop/data.length*W;
+      ctx.fillRect(x0,0,Math.max(1,(r.hop/data.length)*W),H);
+    }
+  }
+  // контур F0 (линия)
+  ctx.strokeStyle='rgba(239,68,68,.9)'; ctx.lineWidth=1.5*dpr; ctx.beginPath();
   const f0s=r.f0s;
+  let started=false;
   for(let i=0;i<f0s.length;i++){
-    if(f0s[i]<=0) continue;
+    if(f0s[i]<=0){ started=false; continue; }
     const x=(i*r.hop+r.frame/2)/data.length*W;
     const y=H*(1-clamp((f0s[i]-60)/(300-60),0.02,0.98));
-    ctx.fillRect(x-dpr*0.7,y-dpr*0.7,dpr*1.4,dpr*1.4);
+    if(!started){ ctx.moveTo(x,y); started=true; } else { ctx.lineTo(x,y); }
   }
+  ctx.stroke();
 }
 
 async function toggleRecord(mode){
@@ -1255,6 +1425,7 @@ function runCompare(){
   const A=$('cmpA').value, B=$('cmpB').value;
   if(!A.trim()||!B.trim()){ flashError($('cmpResult'),'Вставьте обе версии для сравнения.'); return; }
   const r=compareStatements(A,B);
+  pushHistory({type:'cmp',date:Date.now(),score:r.consistency,verdict:r.verdict.title,extra:'сравнение версий: '+r.conflicts.length+' расхождений'});
   const el=$('cmpResult');
   el.innerHTML='';
   const box=document.createElement('div'); box.className='result';
@@ -1295,7 +1466,7 @@ function runCompare(){
   }
   const eb=document.createElement('button'); eb.className='btn'; eb.style.marginTop='12px';
   eb.textContent='📋 Сохранить отчёт (.txt)';
-  eb.onclick=()=>exportResult(compareExportLines(r));
+  attachExport(eb,compareExportLines(r));
   box.appendChild(eb);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -1312,9 +1483,9 @@ function startInterview(){
   for(const q of generateQuestions(topic)) addItem(q,false);
   $('qSummaryRow').style.display='flex';
 }
-function addItem(text,isFu){
+function addItem(text,isFu,baseIdx){
   const idx=qState.items.length;
-  qState.items.push({text:text,score:null,answer:''});
+  qState.items.push({text:text,score:null,answer:'',base:baseIdx==null?null:baseIdx});
   const div=document.createElement('div');
   div.className='qitem'+(isFu?' fu':'');
   const head=document.createElement('div'); head.className='q-head';
@@ -1333,7 +1504,8 @@ function addItem(text,isFu){
 }
 function checkAnswer(idx,div,ta,btn){
   const ans=ta.value.trim();
-  if(ans.split(/\s+/).length<3){ ta.focus(); return; }
+  const wN=ans.split(/\s+/).length;
+  if(wN<3){ ta.focus(); $('qSumNote').textContent='Ответ слишком короткий — раскройте его (хотя бы 15 слов для надёжной оценки).'; return; }
   const r=analyzeText(ans);
   qState.items[idx].score=r.score;
   qState.items[idx].answer=ans;
@@ -1343,20 +1515,29 @@ function checkAnswer(idx,div,ta,btn){
     +' <span class="muted">(достоверность: '+r.confidence.label+', '+(r.metrics?r.metrics.nW:0)+' слов)</span></div>';
   const top=r.signals.filter(s=>s.side!=='info').sort((a,b)=>Math.abs(b.pts)-Math.abs(a.pts)).slice(0,3);
   if(top.length) html+='<div class="qmarks">'+top.map(s=>(s.side==='lie'?'⚠️':'✅')+' '+s.title).join(' &nbsp;•&nbsp; ')+'</div>';
-  if(fus.length){
-    html+='<div class="qfu-head">Уточнить здесь:</div>';
+  const fuAdded=qState.items.filter(it=>it.base===idx).length;
+  if(fus.length&&fuAdded<2){
+    html+='<div class="qfu-head">Уточнить здесь (макс. 2 уточнения на вопрос):</div>';
     fus.forEach((f,k)=>{ html+='<div class="qfu"><span class="qfu-t" data-k="'+k+'"></span><button class="btn mini" data-fub="'+k+'">➕</button></div>'; });
+  }
+  if(wN<15){
+    html+='<div class="qmarks" style="color:var(--warn)">Ответ короткий ('+wN+' слов) — оценка неточная, раскройте его подробнее.</div>';
   }
   html+='</div>';
   const wrap=document.createElement('div'); wrap.className='qres'; wrap.innerHTML=html;
   fus.forEach((f,k)=>{
     wrap.querySelector('[data-k="'+k+'"]').textContent=f;
-    wrap.querySelector('[data-fub="'+k+'"]').onclick=()=>addItem(f,true);
+    wrap.querySelector('[data-fub="'+k+'"]').onclick=()=>{
+      if(qState.items.filter(it=>it.base===idx).length>=2) return;
+      addItem(f,true,idx);
+    };
   });
   div.appendChild(wrap);
   btn.disabled=true; btn.textContent='Ответ проверен ✓';
   qState.checked++;
-  $('qSumNote').textContent='проверено ответов: '+qState.checked;
+  const done=qState.items.filter(i=>i.score!=null);
+  const avg=done.length?Math.round(done.reduce((a,i)=>a+i.score,0)/done.length):null;
+  $('qSumNote').textContent='проверено ответов: '+qState.checked+(avg!=null?' • текущий средний индекс: '+avg+'/100':'');
 }
 function interviewSummary(){
   const items=qState.items.filter(i=>i.score!=null);
