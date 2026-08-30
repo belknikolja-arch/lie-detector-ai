@@ -83,6 +83,18 @@ canvas.wave{width:100%;height:150px;background:var(--card2);border:1px solid var
 .hist-date{color:var(--muted);flex:0 0 100px;font-size:12px}
 .hist-ex{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hist-act{color:var(--acc)}
+input.qtopic{background:var(--card2);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:11px 14px;font-size:14.5px;flex:1;min-width:240px}
+.qitem{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.qitem.fu{border-style:dashed}
+.q-head{display:flex;gap:10px;align-items:baseline;margin-bottom:8px}
+.qnum{font-weight:800;color:var(--acc2);flex:0 0 auto;font-size:13px}
+.qtext{font-weight:600;font-size:14px}
+.qres{margin-top:10px;padding:10px 12px;background:#0b1120;border:1px solid var(--line);border-radius:10px}
+.qscore{font-size:13.5px}
+.qmarks{margin-top:6px;font-size:13px;color:var(--muted)}
+.qfu-head{margin-top:10px;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.qfu{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px}
+.qfu-t{flex:1}
 details.method{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 20px;margin-bottom:16px}
 details.method summary{cursor:pointer;font-weight:700;font-size:16px;padding:12px 0;color:var(--acc2)}
 details.method h4{margin:18px 0 6px;font-size:14.5px;color:var(--acc2)}
@@ -95,7 +107,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 <body>
 <div class="wrap">
 
-  <h1>🕵️ Детектор лжи <span class="badge">AI v1.2 • эксперимент</span></h1>
+  <h1>🕵️ Детектор лжи <span class="badge">AI v1.3 • эксперимент</span></h1>
   <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
 
   <div class="strip">
@@ -106,6 +118,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <div class="tab active" id="tabTextBtn" onclick="switchTab('text')">📝 Текст</div>
     <div class="tab" id="tabVoiceBtn" onclick="switchTab('voice')">🎙️ Голос</div>
     <div class="tab" id="tabCmpBtn" onclick="switchTab('cmp')">⚖️ Две версии</div>
+    <div class="tab" id="tabQBtn" onclick="switchTab('q')">🗣 Интервью</div>
   </div>
 
   <!-- ==================== TEXT ==================== -->
@@ -161,6 +174,21 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <div id="cmpResult"></div>
   </div>
 
+  <!-- ==================== INTERVIEW ==================== -->
+  <div id="panelQ" class="card hidden">
+    <p class="muted" style="margin-top:0">Режим интервью (по мотивам методики PEACE): задайте тему, получите список открытых вопросов. После каждого ответа система покажет его маркеры и предложит уточняющие вопросы — «копнуть» именно там, где ответ «плывёт». В конце — сводка с экспортом.</p>
+    <div class="row">
+      <input id="qTopic" class="qtopic" placeholder="Тема расследования: например, исчезновение документов из офиса">
+      <button class="btn primary" onclick="startInterview()">▶ Начать интервью</button>
+    </div>
+    <div id="qList"></div>
+    <div class="row" id="qSummaryRow" style="display:none">
+      <button class="btn" onclick="interviewSummary()">📊 Сводка по интервью</button>
+      <span class="muted" id="qSumNote"></span>
+    </div>
+    <div id="qSummary"></div>
+  </div>
+
   <!-- ==================== METHOD ==================== -->
   <details class="method">
     <summary>⚙️ Как это работает (и почему это не полиграф)</summary>
@@ -191,6 +219,12 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <li>Расхождение ≠ ложь: память по-настоящему «пересобирается» между рассказами. Используйте найденные расхождения, чтобы сфокусировать проверку фактов.</li>
     </ul>
 
+    <h4>Интервью: генератор вопросов (v1.3)</h4>
+    <ul>
+      <li>Стартовые вопросы — открытые, в духе PEACE (полное рассказывание, время, место, последовательность, другие свидетели, память, чувства). Уточняющие вопросы генерируются по маркерам ответа: много отрицаний → «что именно вы делали?», оговорки → «давайте точность», мало конкретики → «какие цифры, имена, время?», эхо → «перескажите своими словами».</li>
+      <li>Логика: в свободном рассказе лжецу сложнее держать версию согласованной, а уточнения направляют проверку в слабые места <b>фактов</b>. Это инструмент структурирования разговора, а не «ловушка».</li>
+    </ul>
+
     <h4>Ограничения</h4>
     <ul>
       <li>По мета-анализам точность людей ~54% (Bond &amp; DePaulo, 2006), экспертов — сопоставимо (Vrij — до 56%). Системы ИИ на лабораторных датасетах дают 60–80%, но на реальных, не «режиссированных» данных существенно меньше — в свежих экспериментах (2025) отдельные LLM-системы работали ниже случайного уровня.</li>
@@ -202,7 +236,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI v1.2 (сравнение с эталоном голоса + сравнение двух версий + история и экспорт) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.3 (текст • голос • эталон • две версии • интервью) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
 
 <script id="core">
@@ -291,18 +325,26 @@ function detailsOf(text,lang){
   const total=nums+dates+clock+proper+timew+money;
   return {nums:nums,dates:dates,clock:clock,proper:proper,timew:timew,money:money,total:total};
 }
+const STOP_ECHO = {
+  ru:new Set(['и','в','на','по','с','из','за','от','к','о','об','для','до','у','при','без','между','что','как','но','а','же','то','да','нет','не','или','ли','вот','ведь','уж','тоже','так','таким','такое','такой','такая','такие','этом','этого','этой','этим','около','про']),
+  en:new Set(['and','or','but','if','then','than','so','of','to','in','on','at','by','for','with','about','as','the','a','an','not','no','yes','that','this','these','those','there','here','when','where','why','how','what','which','who','whom','into','over','up','down','out','off','before','after','between','under','again','further','once'])
+};
 function findRepeats(tokens,lang){
-  const sw=STOP[lang];
+  const sw=STOP_ECHO[lang];
   const w=tokens.filter(t=>t.length>2&&!sw.has(t));
-  const size=w.length>=20?4:3;
-  const seen=new Map();
-  for(let i=0;i+size<=w.length;i++){
-    const g=w.slice(i,i+size).join('|');
-    seen.set(g,(seen.get(g)||0)+1);
+  for(const size of [4,3,2]){
+    const minCount=size===2?3:2;
+    if(w.length<size*2) continue;
+    const seen=new Map();
+    for(let i=0;i+size<=w.length;i++){
+      const g=w.slice(i,i+size).join('|');
+      seen.set(g,(seen.get(g)||0)+1);
+    }
+    const dups=[];
+    for(const [g,c] of seen) if(c>=minCount){dups.push(g.replace(/\|/g,' ')); if(dups.length>=2) break;}
+    if(dups.length) return dups;
   }
-  const dups=[];
-  for(const [g,c] of seen) if(c>=2){dups.push(g.replace(/\|/g,' ')); if(dups.length>=2) break;}
-  return dups;
+  return [];
 }
 function verdictOf(score){
   if(score<40) return {title:'Скорее правдивое высказывание',cls:'good'};
@@ -334,7 +376,8 @@ function analyzeText(raw){
   if(nW<3){
     return {score:50,verdict:verdictOf(50),confidence:{label:'нет данных',level:0},lang:lang,nWords:nW,
       signals:[sig('info',0,'Слишком мало слов','Проанализировать нечего. Вставьте высказывание объёмом хотя бы 10–15 слов.')],
-      stats:{sentences:sentences,avgLen:avgLen,det:det}};
+      stats:{sentences:sentences,avgLen:avgLen,det:det},
+      metrics:{negD:0,hedD:0,clm:0,selfD:0,detD:0,emoD:0,avgLen:avgLen,dups:0,nW:nW}};
   }
 
   // 1. Отрицания
@@ -411,7 +454,8 @@ function analyzeText(raw){
   for(const s of signals){ if(s.side==='lie') score+=s.pts; else if(s.side==='truth') score-=s.pts; }
   score=clamp(score,5,95);
   return {score:score,verdict:verdictOf(score),confidence:confidenceOfWords(nW),lang:lang,nWords:nW,signals:signals,
-    stats:{sentences:sentences,avgLen:avgLen,det:det}};
+    stats:{sentences:sentences,avgLen:avgLen,det:det},
+    metrics:{negD:negD,hedD:hedD,clm:clm,selfD:selfD,detD:detD,emoD:emoD,avgLen:avgLen,dups:dups.length,nW:nW}};
 }
 
 /* ---------------- Анализ голоса ---------------- */
@@ -717,6 +761,36 @@ function compareStatements(rawA,rawB){
   return {consistency:consistency,verdict:verdict,conflicts:conflicts,matches:matches,notes:notes,lang:lang,
     stats:{a:{nW:ta.length},b:{nW:tb.length}}};
 }
+
+/* ---------------- Интервью: генератор вопросов (v1.3) ---------------- */
+function generateQuestions(topic){
+  const t=(topic||'').trim();
+  const T=t||'события';
+  return [
+    'Расскажите обо всём, что связано с «'+T+'», по порядку, ничего не пропускайте.',
+    'Когда именно это произошло: в какой день, примерно во сколько — по вашей памяти?',
+    'Где это происходило? Кто был рядом и что каждый делал?',
+    'Что вы делали до и после: в каком порядке шли события?',
+    'Кто ещё знает о «'+T+'» и что вы им рассказывали? Совпадает ли это с тем, что вы говорите сейчас?',
+    'Что именно вы помните лучше всего, и что, наоборот, размыто?',
+    'Как вы себя чувствовали в этой ситуации и как отреагировали в моменте?'
+  ];
+}
+function genFollowUps(answer,topic){
+  const t=(topic||'').trim();
+  const T=t||'это';
+  const m=(analyzeText(answer).metrics)||{};
+  const out=[];
+  if((m.dups||0)>0) out.push('Вы повторяли мои формулировки. Перескажите своими словами: что ещё вы помните в связи с «'+T+'»?');
+  if((m.negD||0)>=4) out.push('В ответе много отрицаний. Тогда что именно вы делали? Опишите свои действия по шагам.');
+  if((m.hedD||0)>=1.5) out.push('Появились оговорки («может быть», «кажется»). Давайте точность: что произошло на самом деле, по вашему честному ощущению?');
+  if((m.clm||0)>=1) out.push('Вы подчёркиваете свою честность — это нормально. Перейдём к фактам: назовите точное время и место, которые вы помните.');
+  if((m.detD||0)<0.6 && (m.nW||0)>=15) out.push('Добавьте конкретики: какие цифры, имена, даты или время суток вы помните в связи с «'+T+'»?');
+  if((m.emoD||0)<0.2 && (m.nW||0)>=15) out.push('Расскажите о чувствах: что вы почувствовали, когда это произошло? Как отреагировали?');
+  if(out.length<2) out.push('Какую деталь о «'+T+'» вы могли бы рассказать, но считаете, что я о ней не спросил?');
+  if(out.length<2) out.push('Опишите «'+T+'» с конца: что было в самом конце, что перед этим. Часто так вспоминать проще.');
+  return out.slice(0,3);
+}
 </script>
 
 <script>
@@ -729,9 +803,11 @@ function switchTab(which){
   $('tabTextBtn').classList.toggle('active',which==='text');
   $('tabVoiceBtn').classList.toggle('active',which==='voice');
   $('tabCmpBtn').classList.toggle('active',which==='cmp');
+  $('tabQBtn').classList.toggle('active',which==='q');
   $('panelText').classList.toggle('hidden',which!=='text');
   $('panelVoice').classList.toggle('hidden',which!=='voice');
   $('panelCmp').classList.toggle('hidden',which!=='cmp');
+  $('panelQ').classList.toggle('hidden',which!=='q');
 }
 
 const VERDICT_COLOR={good:'var(--good)',warn:'var(--warn)',mid:'var(--mid)',bad:'var(--bad)'};
@@ -1222,6 +1298,100 @@ function runCompare(){
   eb.onclick=()=>exportResult(compareExportLines(r));
   box.appendChild(eb);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ---------- Интервью (v1.3) ---------- */
+let qState={topic:'',items:[],checked:0};
+
+function startInterview(){
+  const topic=$('qTopic').value;
+  qState={topic:topic,items:[],checked:0};
+  $('qList').innerHTML='';
+  $('qSummary').innerHTML='';
+  $('qSumNote').textContent='';
+  for(const q of generateQuestions(topic)) addItem(q,false);
+  $('qSummaryRow').style.display='flex';
+}
+function addItem(text,isFu){
+  const idx=qState.items.length;
+  qState.items.push({text:text,score:null,answer:''});
+  const div=document.createElement('div');
+  div.className='qitem'+(isFu?' fu':'');
+  const head=document.createElement('div'); head.className='q-head';
+  const num=document.createElement('span'); num.className='qnum';
+  num.textContent='В'+(idx+1)+(isFu?' (уточнение)':'');
+  const tx=document.createElement('span'); tx.className='qtext'; tx.textContent=text;
+  head.appendChild(num); head.appendChild(tx);
+  const ta=document.createElement('textarea');
+  ta.style.minHeight='70px'; ta.placeholder='Ваш ответ…';
+  const btn=document.createElement('button');
+  btn.className='btn'; btn.style.marginTop='8px'; btn.textContent='🔍 Проверить ответ';
+  btn.onclick=()=>checkAnswer(idx,div,ta,btn);
+  div.appendChild(head); div.appendChild(ta); div.appendChild(btn);
+  $('qList').appendChild(div);
+  if(isFu) div.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function checkAnswer(idx,div,ta,btn){
+  const ans=ta.value.trim();
+  if(ans.split(/\s+/).length<3){ ta.focus(); return; }
+  const r=analyzeText(ans);
+  qState.items[idx].score=r.score;
+  qState.items[idx].answer=ans;
+  const col=r.score<40?'var(--good)':r.score<55?'var(--warn)':r.score<70?'var(--mid)':'var(--bad)';
+  const fus=genFollowUps(ans,qState.topic);
+  let html='<div class="qscore">Индекс ответа: <b style="color:'+col+'">'+Math.round(r.score)+'</b>/100 — '+r.verdict.title
+    +' <span class="muted">(достоверность: '+r.confidence.label+', '+(r.metrics?r.metrics.nW:0)+' слов)</span></div>';
+  const top=r.signals.filter(s=>s.side!=='info').sort((a,b)=>Math.abs(b.pts)-Math.abs(a.pts)).slice(0,3);
+  if(top.length) html+='<div class="qmarks">'+top.map(s=>(s.side==='lie'?'⚠️':'✅')+' '+s.title).join(' &nbsp;•&nbsp; ')+'</div>';
+  if(fus.length){
+    html+='<div class="qfu-head">Уточнить здесь:</div>';
+    fus.forEach((f,k)=>{ html+='<div class="qfu"><span class="qfu-t" data-k="'+k+'"></span><button class="btn mini" data-fub="'+k+'">➕</button></div>'; });
+  }
+  html+='</div>';
+  const wrap=document.createElement('div'); wrap.className='qres'; wrap.innerHTML=html;
+  fus.forEach((f,k)=>{
+    wrap.querySelector('[data-k="'+k+'"]').textContent=f;
+    wrap.querySelector('[data-fub="'+k+'"]').onclick=()=>addItem(f,true);
+  });
+  div.appendChild(wrap);
+  btn.disabled=true; btn.textContent='Ответ проверен ✓';
+  qState.checked++;
+  $('qSumNote').textContent='проверено ответов: '+qState.checked;
+}
+function interviewSummary(){
+  const items=qState.items.filter(i=>i.score!=null);
+  if(!items.length){ $('qSummary').innerHTML='<div class="err">Пока нет проверенных ответов — ответьте на вопросы и нажмите «Проверить ответ».</div>'; return; }
+  const avg=items.reduce((a,i)=>a+i.score,0)/items.length;
+  const v=verdictOf(avg);
+  const col=VERDICT_COLOR[v.cls];
+  let html='<div class="result"><div class="gauge-box">'+gaugeHTML('qg')+'</div>'
+    +'<div class="verdict" style="color:'+col+'">Средний индекс ответов: '+v.title+'</div>'
+    +'<div class="conf">Тема: '+(qState.topic||'—')+' • проверено ответов: '+items.length+' • средний индекс: '+Math.round(avg)+'/100</div><div class="stats">';
+  items.forEach((it,k)=>{
+    const c=it.score<40?'var(--good)':it.score<55?'var(--warn)':it.score<70?'var(--mid)':'var(--bad)';
+    html+='<div class="stat"><div class="k">В'+(k+1)+': '+it.text.slice(0,30)+(it.text.length>30?'…':'')+'</div><div class="v" style="color:'+c+'">'+Math.round(it.score)+'</div></div>';
+  });
+  html+='</div><button class="btn" style="margin-top:12px" onclick="exportInterview()">📋 Сохранить отчёт интервью (.txt)</button></div>';
+  $('qSummary').innerHTML=html;
+  setGauge('qg',avg,v,'средний индекс ответов 0–100');
+  $('qSummary').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function exportInterview(){
+  const items=qState.items.filter(i=>i.score!=null);
+  const avg=items.length? items.reduce((a,i)=>a+i.score,0)/items.length : 50;
+  const v=verdictOf(avg);
+  const L=['Детектор лжи AI — интервью','Дата: '+new Date().toLocaleString('ru-RU'),''];
+  L.push('Тема: '+(qState.topic||'—'));
+  L.push('Средний индекс ответов: '+Math.round(avg)+'/100 — '+v.title);
+  L.push('');
+  items.forEach((it,k)=>{
+    L.push('В'+(k+1)+': '+it.text);
+    L.push('  Ответ: '+it.answer.replace(/\s+/g,' ').slice(0,400));
+    L.push('  Индекс: '+Math.round(it.score)+'/100');
+  });
+  L.push('');
+  L.push('⚠️ Результат — не заключение о человеке, а только статистические маркеры.');
+  exportResult(L);
 }
 
 renderBaseStatus(getBaseline());
