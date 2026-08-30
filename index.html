@@ -72,6 +72,17 @@ canvas.wave{width:100%;height:150px;background:var(--card2);border:1px solid var
 .cmp-vals{flex:1}
 .cmp-dev{font-weight:700;flex:0 0 92px;text-align:right}
 @media(max-width:600px){.cmp-name{flex-basis:105px}.cmp-dev{flex-basis:80px}}
+.cmp2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.cmp2{grid-template-columns:1fr}}
+.hist{margin:14px 0;padding:10px 12px;background:var(--card2);border:1px solid var(--line);border-radius:12px}
+.hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.btn.mini{padding:4px 12px;font-size:12.5px;border-radius:8px}
+.hist-row{display:flex;gap:10px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px}
+.hist-row:hover{background:#1a2344}
+.hist-score{font-weight:800;flex:0 0 30px;text-align:center}
+.hist-date{color:var(--muted);flex:0 0 100px;font-size:12px}
+.hist-ex{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-act{color:var(--acc)}
 details.method{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 20px;margin-bottom:16px}
 details.method summary{cursor:pointer;font-weight:700;font-size:16px;padding:12px 0;color:var(--acc2)}
 details.method h4{margin:18px 0 6px;font-size:14.5px;color:var(--acc2)}
@@ -84,7 +95,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 <body>
 <div class="wrap">
 
-  <h1>🕵️ Детектор лжи <span class="badge">AI v1.1 • эксперимент</span></h1>
+  <h1>🕵️ Детектор лжи <span class="badge">AI v1.2 • эксперимент</span></h1>
   <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
 
   <div class="strip">
@@ -94,6 +105,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
   <div class="tabs">
     <div class="tab active" id="tabTextBtn" onclick="switchTab('text')">📝 Текст</div>
     <div class="tab" id="tabVoiceBtn" onclick="switchTab('voice')">🎙️ Голос</div>
+    <div class="tab" id="tabCmpBtn" onclick="switchTab('cmp')">⚖️ Две версии</div>
   </div>
 
   <!-- ==================== TEXT ==================== -->
@@ -102,6 +114,13 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <div class="row">
       <button class="btn primary" id="btnAnalyze" onclick="runTextAnalysis()">🔍 Проанализировать</button>
       <span class="hint">Подсказка: <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> — анализ</span>
+    </div>
+    <div class="hist">
+      <div class="hist-head">
+        <span class="bs-title">🕘 Последние анализы</span>
+        <button class="btn mini" id="btnClearHist" onclick="clearHistory()">Очистить</button>
+      </div>
+      <div id="histList"></div>
     </div>
     <div id="textResult"></div>
   </div>
@@ -131,6 +150,17 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <div id="voiceResult"></div>
   </div>
 
+  <!-- ==================== COMPARE ==================== -->
+  <div id="panelCmp" class="card hidden">
+    <p class="muted" style="margin-top:0">Вставьте две версии одного события (например, первые показания и повторные, сообщение и объяснение). Система найдёт расхождения в проверяемых деталях — цифрах, времени, днях, лицах — и общие точки. Это самая сильная фактическая техника: выдуманную версию сложнее держать согласованной.</p>
+    <div class="cmp2">
+      <div><label class="muted" style="display:block;margin-bottom:6px">Версия А (первичная)</label><textarea id="cmpA" style="min-height:140px" placeholder="…"></textarea></div>
+      <div><label class="muted" style="display:block;margin-bottom:6px">Версия Б (последующая)</label><textarea id="cmpB" style="min-height:140px" placeholder="…"></textarea></div>
+    </div>
+    <div class="row"><button class="btn primary" id="btnCompare" onclick="runCompare()">⚖️ Сравнить версии</button></div>
+    <div id="cmpResult"></div>
+  </div>
+
   <!-- ==================== METHOD ==================== -->
   <details class="method">
     <summary>⚙️ Как это работает (и почему это не полиграф)</summary>
@@ -154,6 +184,13 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <li><b>Сравнение с эталоном</b> — внутриличностный контроль: задаётся голос человека в обычном состоянии, а система показывает расхождения в высоте тона, микрофлуктуациях, паузах и энергии (индекс отклонения 0–100: F0 30%, микрофлуктуации 25%, паузы 25%, энергия 20%). Это снимает влияние «штатных» особенностей голоса, но изменения вызывают и стресс, усталость, болезнь — поэтому вклад эталона в итоговый индекс ограничен (макс. +2.5 пункта).</li>
     </ul>
 
+    <h4>Сравнение двух версий (v1.2)</h4>
+    <ul>
+      <li>Из каждой версии извлекаются структурированные детали — цифры, время, даты, временной каркас (день, время суток), лица — и показываются расхождения и общие точки. Индекс согласованности: штраф за расхождение дня 25, цифр до 20, времени/дат по 15, времени суток 15, лиц до 15.</li>
+      <li>Исследовательская база: «стабильность версии» (Vrij, методика PEACE) — при повторном рассказе версии лжецов в среднем менее согласованы, чем правдивые, но эффект слабый и сильно зависит от контекста.</li>
+      <li>Расхождение ≠ ложь: память по-настоящему «пересобирается» между рассказами. Используйте найденные расхождения, чтобы сфокусировать проверку фактов.</li>
+    </ul>
+
     <h4>Ограничения</h4>
     <ul>
       <li>По мета-анализам точность людей ~54% (Bond &amp; DePaulo, 2006), экспертов — сопоставимо (Vrij — до 56%). Системы ИИ на лабораторных датасетах дают 60–80%, но на реальных, не «режиссированных» данных существенно меньше — в свежих экспериментах (2025) отдельные LLM-системы работали ниже случайного уровня.</li>
@@ -165,7 +202,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI v1.1 (сравнение с эталоном голоса) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.2 (сравнение с эталоном голоса + сравнение двух версий + история и экспорт) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
 
 <script id="core">
@@ -227,9 +264,9 @@ function countPhrase(tokens,phrase){
   return c;
 }
 function countList(tokens,list){let n=0;for(const p of list) n+=countPhrase(tokens,p);return n;}
-function countProper(text){
+function properNouns(text){
   const re=/[А-ЯЁA-Z][а-яёa-z]{2,}/g;
-  let m,c=0;
+  let m; const out=[];
   while((m=re.exec(text))){
     const i=m.index;
     if(i===0) continue;
@@ -237,10 +274,11 @@ function countProper(text){
     while(j>=0&&/\s/.test(text[j])) j--;      // предыдущий не-пробельный символ
     if(j<0) continue;
     if(/[.!?…;:\n]/.test(text[j])) continue;   // заглавная после знака препинания = начало предложения
-    c++;
+    out.push(m[0]);
   }
-  return c;
+  return out;
 }
+function countProper(text){ return properNouns(text).length; }
 function detailsOf(text,lang){
   const L=LEX[lang];
   const nums=(text.match(/\d+(?:[.,]\d+)?/g)||[]).length;
@@ -544,6 +582,141 @@ function compareVoiceMetrics(base,cur){
   const idx=Math.round(100*Math.min(1,0.30*rows[0].norm+0.25*rows[2].norm+0.25*rows[3].norm+0.20*rows[4].norm));
   return {rows:rows,index:idx,reliable:(base.voicedSec>=3&&cur.voicedSec>=3)};
 }
+
+/* ---------------- Сравнение двух версий (v1.2) ---------------- */
+function extractNumbers(text){
+  // маскируем время (18:30), даты (3.09) и англ. даты (March 3), чтобы они не засоряли сравнение цифр
+  const t=text.replace(/\d{1,2}:\d{2}/g,' ')
+    .replace(/\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/g,' ')
+    .replace(/\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\.?\s+\d{1,2}\b/gi,' ');
+  const m=t.match(/\d+(?:[.,]\d+)?/g)||[];
+  return [...new Set(m)];
+}
+function extractClocks(text,lang){
+  const re= lang==='ru' ? /(?:в|о)\s+(\d{1,2}(?::\d{2})?)/g : /(?:at|of)\s+(\d{1,2}(?::\d{2})?)/g;
+  const out=[]; let m;
+  while((m=re.exec(text))){ if(out.indexOf(m[1])<0) out.push(m[1]); }
+  return out;
+}
+const EN_PROPER_EXCL=new Set(['january','february','march','april','may','june','july','august','september','october','november','december','monday','tuesday','wednesday','thursday','friday','saturday','sunday']);
+const RU_ENDINGS=['овым','овому','овой','овом','овых','овы','овам','ово','ова','ов','ах','аях','ая','им','ом','ам','ем','у','ю','а','я','е','ы','и','о'];
+function nameStems(name){
+  const n=name.toLowerCase();
+  const cands=[n];
+  if(/^[а-яё]+$/.test(n)) for(const e of RU_ENDINGS) if(n.length>e.length+2&&n.endsWith(e)) cands.push(n.slice(0,-e.length));
+  return cands;
+}
+function sameName(a,b,lang){
+  const na=a.toLowerCase().replace(/ё/g,'е'), nb=b.toLowerCase().replace(/ё/g,'е');
+  if(na===nb) return true;
+  if(lang==='ru'){
+    for(const x of nameStems(na)) for(const y of nameStems(nb)) if(x===y) return true;
+  }
+  if(na.length>=5&&nb.length>=5&&na.slice(0,4)===nb.slice(0,4)) return true;
+  return false;
+}
+function extractDates(text){
+  return [...new Set(text.match(/\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/g)||[])];
+}
+function temporalFrame(tokens,lang){
+  const dayMap= lang==='ru'
+    ? {yesterday:'вчера',today:'сегодня',tomorrow:'завтра',daybefore:'позавчера'}
+    : {yesterday:'yesterday',today:'today',tomorrow:'tomorrow'};
+  const partMap= lang==='ru'
+    ? {morning:'утром',afternoon:'днём',evening:'вечером',night:'ночью'}
+    : {morning:'morning',afternoon:'afternoon',evening:'evening',night:'night'};
+  const day=[],part=[];
+  for(const k in dayMap) if(countPhrase(tokens,dayMap[k])>0) day.push(k);
+  for(const k in partMap) if(countPhrase(tokens,partMap[k])>0) part.push(k);
+  return {day:day,part:part};
+}
+const DAY_LABEL={ru:{yesterday:'вчера',today:'сегодня',tomorrow:'завтра',daybefore:'позавчера'},en:{yesterday:'yesterday',today:'today',tomorrow:'tomorrow'}};
+const PART_LABEL={ru:{morning:'утро',afternoon:'день',evening:'вечер',night:'ночь'},en:{morning:'morning',afternoon:'afternoon',evening:'evening',night:'night'}};
+function frameLabel(lang,frame,kind){
+  const map=kind==='day'?DAY_LABEL[lang]:PART_LABEL[lang];
+  return (kind==='day'?frame.day:frame.part).map(k=>map[k]).join(', ');
+}
+function common3grams(ta,tb,lang){
+  const sw=STOP[lang];
+  const clean=t=>t.filter(x=>x.length>2&&!sw.has(x));
+  const A=clean(ta),B=clean(tb);
+  const setA={};
+  for(let i=0;i+3<=A.length;i++) setA[A.slice(i,i+3).join('|')]=1;
+  const out=[];
+  for(let i=0;i+3<=B.length;i++){
+    const g=B.slice(i,i+3).join('|');
+    const s=g.replace(/\|/g,' ');
+    if(setA[g]&&out.indexOf(s)<0){out.push(s); if(out.length>=3) break;}
+  }
+  return out;
+}
+function compareStatements(rawA,rawB){
+  const ta=tokenize(rawA), tb=tokenize(rawB);
+  const lang=detectLang(rawA+' '+rawB);
+  const conflicts=[],matches=[],notes=[];
+  if(ta.length<10||tb.length<10){
+    return {consistency:50,verdict:{title:'Недостаточно текста',cls:'warn'},conflicts:conflicts,matches:matches,
+      notes:['Для осмысленного сравнения обе версии должны быть объёмом не меньше 10 слов: на коротких текстах маркеры почти случайны.'],lang:lang,
+      stats:{a:{nW:ta.length},b:{nW:tb.length}}};
+  }
+  // цифры
+  const nA=extractNumbers(rawA), nB=extractNumbers(rawB);
+  const onlyA=nA.filter(x=>nB.indexOf(x)<0), onlyB=nB.filter(x=>nA.indexOf(x)<0);
+  if(onlyA.length||onlyB.length){
+    conflicts.push({type:'Цифры',pts:Math.min(20,10+Math.max(onlyA.length,onlyB.length)*5),
+      a:onlyA.join(', ')||'—', b:onlyB.join(', ')||'—',
+      detail:'Цифры, упомянутые в одной версии, отсутствуют в другой ('+onlyA.length+' / '+onlyB.length+'). Расхождения в суммах, количествах и номерах — одни из самых проверяемых деталей.'});
+  } else if(nA.length){ matches.push('Одинаковые цифры в обеих версиях: '+nA.join(', ')); }
+  // время
+  const cA=extractClocks(rawA,lang), cB=extractClocks(rawB,lang);
+  const cOnlyA=cA.filter(x=>cB.indexOf(x)<0), cOnlyB=cB.filter(x=>cA.indexOf(x)<0);
+  if(cA.length&&cB.length&&(cOnlyA.length||cOnlyB.length)){
+    conflicts.push({type:'Время',pts:15,a:cA.join(', '),b:cB.join(', '),
+      detail:'Версии называют разное время события — классическое расхождение в «временном каркасе».'});
+  } else if(cA.length&&cA.every(x=>cB.indexOf(x)>=0)){ matches.push('Одинаковое время: '+cA.join(', ')); }
+  // даты
+  const dA=extractDates(rawA), dB=extractDates(rawB);
+  const dOnlyA=dA.filter(x=>dB.indexOf(x)<0), dOnlyB=dB.filter(x=>dA.indexOf(x)<0);
+  if(dA.length&&dB.length&&(dOnlyA.length||dOnlyB.length)){
+    conflicts.push({type:'Даты',pts:15,a:dA.join(', '),b:dB.join(', '),detail:'Даты в версиях отличаются.'});
+  } else if(dA.length&&dA.every(x=>dB.indexOf(x)>=0)){ matches.push('Одинаковые даты: '+dA.join(', ')); }
+  // временной каркас: день и время суток
+  const fA=temporalFrame(ta,lang), fB=temporalFrame(tb,lang);
+  const dayConf=fA.day.length&&fB.day.length&&!fA.day.some(x=>fB.day.indexOf(x)>=0);
+  const partConf=fA.part.length&&fB.part.length&&!fA.part.some(x=>fB.part.indexOf(x)>=0);
+  if(dayConf) conflicts.push({type:'День события',pts:25,a:frameLabel(lang,fA,'day'),b:frameLabel(lang,fB,'day'),
+    detail:'Версии помещают событие в разные дни. Память действительно «дрейфует» со временем, но противоречивая версия обычно сложнее в поддержании.'});
+  if(partConf) conflicts.push({type:'Время суток',pts:15,a:frameLabel(lang,fA,'part'),b:frameLabel(lang,fB,'part'),
+    detail:'Разные временные рамки суток (утро против вечера и т.п.).'});
+  // имена (лица и названные места), с учётом формы слова
+  let pA=[...new Set(properNouns(rawA))], pB=[...new Set(properNouns(rawB))];
+  if(lang==='en'){
+    pA=pA.filter(x=>!EN_PROPER_EXCL.has(x.toLowerCase()));
+    pB=pB.filter(x=>!EN_PROPER_EXCL.has(x.toLowerCase()));
+  }
+  const nOnlyA=pA.filter(x=>!pB.some(y=>sameName(x,y,lang)));
+  const nOnlyB=pB.filter(x=>!pA.some(y=>sameName(x,y,lang)));
+  if(nOnlyA.length||nOnlyB.length){
+    conflicts.push({type:'Имена',pts:Math.min(15,8+nOnlyA.length*3+nOnlyB.length*3),
+      a:nOnlyA.join(', ')||'—', b:nOnlyB.join(', ')||'—',
+      detail:'Не прямое противоречие: в одной версии фигурирует имя, которого нет в другой (человек или место). Стоит проверить, кто/что именно причастно.'});
+  } else if(pA.length&&pA.every(x=>pB.some(y=>sameName(x,y,lang)))){ matches.push('Одинаковые имена в версиях: '+pA.join(', ')); }
+  // общие точки
+  const common=common3grams(ta,tb,lang);
+  if(common.length) matches.push('Общие формулировки в версиях: '+common.map(c=>'«'+c+'»').join(', '));
+  // итог
+  let pen=conflicts.reduce((a,c)=>a+c.pts,0);
+  const consistency=clamp(Math.round(100-Math.min(90,pen)),5,95);
+  const verdict= consistency<40 ? {title:'Много противоречий между версиями',cls:'bad'}
+    : consistency<60 ? {title:'Заметные расхождения',cls:'mid'}
+    : consistency<75 ? {title:'Небольшие различия в деталях',cls:'warn'}
+    : {title:'Версии в целом согласованы',cls:'good'};
+  if(conflicts.some(c=>c.type==='Цифры'||c.type==='Время'||c.type==='Даты'||c.type==='День события'))
+    notes.push('Расхождения в проверяемых деталях (цифры, время, дни) значимее стилистических — сфокусируйте проверку фактов именно на них.');
+  notes.push('Расхождение — не доказательство лжи: память сама «пересобирает» рассказ. Но согласованность версий — один из немногих приёмов, реально поддерживаемых исследованиями (Vrij, методика PEACE); используйте его для проверки фактов, а не для «уличения».');
+  return {consistency:consistency,verdict:verdict,conflicts:conflicts,matches:matches,notes:notes,lang:lang,
+    stats:{a:{nW:ta.length},b:{nW:tb.length}}};
+}
 </script>
 
 <script>
@@ -555,20 +728,22 @@ function getCtx(){ const AC=window.AudioContext||window.webkitAudioContext; if(!
 function switchTab(which){
   $('tabTextBtn').classList.toggle('active',which==='text');
   $('tabVoiceBtn').classList.toggle('active',which==='voice');
+  $('tabCmpBtn').classList.toggle('active',which==='cmp');
   $('panelText').classList.toggle('hidden',which!=='text');
   $('panelVoice').classList.toggle('hidden',which!=='voice');
+  $('panelCmp').classList.toggle('hidden',which!=='cmp');
 }
 
 const VERDICT_COLOR={good:'var(--good)',warn:'var(--warn)',mid:'var(--mid)',bad:'var(--bad)'};
 const ARC_LEN=267.035; // π * 85
 
-function setGauge(prefix,score,verdict){
+function setGauge(prefix,score,verdict,label){
   const arc=$(prefix+'Arc');
   arc.style.strokeDasharray=(clamp(score,0,100)/100*ARC_LEN)+' '+ARC_LEN;
   const num=$(prefix+'Num');
   num.textContent=Math.round(score);
   num.setAttribute('fill',VERDICT_COLOR[verdict.cls]);
-  $(prefix+'Lab').textContent='индекс обмана 0–100';
+  $(prefix+'Lab').textContent=label||'индекс обмана 0–100';
 }
 function gaugeHTML(id){
   return '<svg class="gauge" viewBox="0 0 220 132">'
@@ -625,6 +800,7 @@ function runTextAnalysis(){
   const raw=$('txtInput').value;
   if(!raw.trim()){ flashError($('textResult'),'Сначала вставьте текст для анализа.'); return; }
   const r=analyzeText(raw);
+  pushHistory({date:Date.now(),text:raw.trim(),score:r.score,verdict:r.verdict.title});
   const el=$('textResult');
   el.innerHTML='';
   const box=document.createElement('div'); box.className='result';
@@ -642,7 +818,106 @@ function runTextAnalysis(){
   ].map(x=>'<div class="stat"><div class="k">'+x[0]+'</div><div class="v">'+x[1]+'</div></div>').join('');
   $('tStats').innerHTML=statHTML;
   renderSignals($('tSignals'),r.signals);
+  const eb=document.createElement('button'); eb.className='btn'; eb.style.marginTop='12px';
+  eb.textContent='📋 Сохранить отчёт (.txt)';
+  eb.onclick=()=>exportResult(textExportLines(r));
+  box.appendChild(eb);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ---------- Экспорт отчёта ---------- */
+function textExportLines(r){
+  const L=['Детектор лжи AI — анализ текста','Дата: '+new Date().toLocaleString('ru-RU'),''];
+  L.push('Текст: '+r.nWords+' слов, язык: '+(r.lang==='ru'?'русский':'английский'));
+  L.push('Индекс обмана: '+Math.round(r.score)+'/100 — '+r.verdict.title);
+  L.push('Достоверность оценки: '+r.confidence.label);
+  L.push('','Маркеры:');
+  for(const s of r.signals){
+    const tag=s.side==='lie'?'обмана':s.side==='truth'?'правды':'св.';
+    L.push(' • ['+tag+(s.pts?' '+(s.side==='lie'?'+':'−')+s.pts.toFixed(1):'')+'] '+s.title);
+  }
+  L.push('');
+  L.push('⚠️ Результат — не заключение о человеке, а только статистические маркеры.');
+  return L;
+}
+function voiceExportLines(r,cmp){
+  const m=r.metrics;
+  const L=['Детектор лжи AI — анализ голоса','Дата: '+new Date().toLocaleString('ru-RU'),''];
+  L.push('Индекс обмана: '+Math.round(r.score)+'/100 — '+r.verdict.title);
+  L.push('Достоверность: '+r.confidence.label+' (речи: '+m.voicedSec.toFixed(1)+' с из '+m.duration.toFixed(0)+' с)');
+  L.push('Средний тон: '+(m.f0mean>0?m.f0mean.toFixed(0)+' Гц':'—')+' • вариативность: '+(m.relVar*100).toFixed(0)+'% • микрофлуктуации: '+(m.jitter*100).toFixed(1)+'% • паузы: '+(m.pauseRatio*100).toFixed(0)+'%');
+  L.push('','Маркеры:');
+  for(const s of r.signals){
+    const tag=s.side==='lie'?'обмана':s.side==='truth'?'правды':'св.';
+    L.push(' • ['+tag+(s.pts?' '+(s.side==='lie'?'+':'−')+s.pts.toFixed(1):'')+'] '+s.title);
+  }
+  if(cmp){
+    L.push('','Сравнение с эталоном: индекс отклонения '+cmp.index+'/100');
+    for(const row of cmp.rows) L.push(' • '+row.name+': '+(row.na?'нет данных':row.base+' → '+row.cur));
+  }
+  L.push('');
+  L.push('⚠️ Результат — не заключение о человеке, а только статистические маркеры.');
+  return L;
+}
+function compareExportLines(r){
+  const L=['Детектор лжи AI — сравнение двух версий','Дата: '+new Date().toLocaleString('ru-RU'),''];
+  L.push('Индекс согласованности: '+r.consistency+'/100 — '+r.verdict.title);
+  L.push('Версия А: '+r.stats.a.nW+' слов • Версия Б: '+r.stats.b.nW+' слов • Язык: '+(r.lang==='ru'?'русский':'английский'));
+  L.push('','Расхождения:');
+  if(r.conflicts.length) for(const c of r.conflicts) L.push(' • ['+c.type+'] А: '+c.a+' / Б: '+c.b);
+  else L.push(' — не найдены');
+  L.push('','Общие точки:');
+  if(r.matches.length) for(const m of r.matches) L.push(' • '+m);
+  else L.push(' — не найдены');
+  L.push('');
+  for(const n of r.notes) L.push('Примечание: '+n);
+  return L;
+}
+function exportResult(lines){
+  const txt=lines.join('\n');
+  const fname='lie-detector-report-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.txt';
+  try{
+    const url=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));
+    const a=document.createElement('a');
+    a.href=url; a.download=fname; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }catch(e){}
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(()=>{});
+}
+
+/* ---------- История анализов ---------- */
+function getHistory(){
+  try{ const s=localStorage.getItem('lieDetectorHistory'); return s?JSON.parse(s):[]; }
+  catch(e){ return []; }
+}
+function pushHistory(item){
+  const h=getHistory(); h.unshift(item); while(h.length>20) h.pop();
+  try{ localStorage.setItem('lieDetectorHistory',JSON.stringify(h)); }catch(e){}
+  renderHistory();
+}
+function clearHistory(){
+  try{ localStorage.removeItem('lieDetectorHistory'); }catch(e){}
+  renderHistory();
+}
+function renderHistory(){
+  const el=$('histList'); if(!el) return;
+  const h=getHistory();
+  if(!h.length){ el.innerHTML='<span class="muted" style="font-size:12.5px">Анализов пока нет. Клик по записи — повторный анализ.</span>'; return; }
+  el.innerHTML='';
+  for(const it of h){
+    const d=new Date(it.date);
+    const col=it.score<40?'var(--good)':it.score<55?'var(--warn)':it.score<70?'var(--mid)':'var(--bad)';
+    const row=document.createElement('div'); row.className='hist-row';
+    const sc=document.createElement('span'); sc.className='hist-score'; sc.style.color=col; sc.textContent=Math.round(it.score);
+    const dt=document.createElement('span'); dt.className='hist-date';
+    dt.textContent=d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    const ex=document.createElement('span'); ex.className='hist-ex';
+    ex.textContent=it.text.replace(/\s+/g,' ').slice(0,70)+(it.text.length>70?'…':'');
+    const ar=document.createElement('span'); ar.className='hist-act'; ar.textContent='↺';
+    row.appendChild(sc); row.appendChild(dt); row.appendChild(ex); row.appendChild(ar);
+    row.onclick=()=>{ $('txtInput').value=it.text; runTextAnalysis(); };
+    el.appendChild(row);
+  }
 }
 function flashError(el,msg){
   const d=document.createElement('div'); d.className='err'; d.textContent=msg;
@@ -708,6 +983,10 @@ async function runVoiceAnalysis(buffer){
       $('vSignals').insertAdjacentHTML('beforebegin',renderComparison(cmp));
     }
     renderSignals($('vSignals'),r.signals);
+    const evb=document.createElement('button'); evb.className='btn'; evb.style.marginTop='12px';
+    evb.textContent='📋 Сохранить отчёт (.txt)';
+    evb.onclick=()=>exportResult(voiceExportLines(r, base?compareVoiceMetrics(base,r.metrics):null));
+    box.appendChild(evb);
   }catch(err){
     out.innerHTML='';
     showVoiceError('Не удалось разобрать аудио: '+(err&&err.message?err.message:err)+' — попробуйте другой файл (mp3, wav, ogg, m4a).');
@@ -895,7 +1174,58 @@ $('fileAudio').addEventListener('change',async e=>{
   e.target.value='';
 });
 
+/* ---------- Сравнение двух версий (v1.2) ---------- */
+function runCompare(){
+  const A=$('cmpA').value, B=$('cmpB').value;
+  if(!A.trim()||!B.trim()){ flashError($('cmpResult'),'Вставьте обе версии для сравнения.'); return; }
+  const r=compareStatements(A,B);
+  const el=$('cmpResult');
+  el.innerHTML='';
+  const box=document.createElement('div'); box.className='result';
+  box.innerHTML='<div class="gauge-box">'+gaugeHTML('cg')+'</div>'
+    +'<div id="cVerdict"></div>'
+    +'<div class="conf">Версия А: '+r.stats.a.nW+' слов • Версия Б: '+r.stats.b.nW+' слов • Язык: '+(r.lang==='ru'?'русский':'английский')+'</div>'
+    +'<div class="signals" id="cSignals"></div>'
+    +'<div id="cNotes" style="margin-top:10px"></div>';
+  el.appendChild(box);
+  setGauge('cg',r.consistency,r.verdict,'индекс согласованности 0–100');
+  $('cVerdict').innerHTML='<div class="verdict" style="color:'+VERDICT_COLOR[r.verdict.cls]+'">'+r.verdict.title+'</div>'
+    +'<div class="verdict-note">Расхождения — инструмент проверки фактов, а не доказательство лжи: память сама «пересобирает» рассказ.</div>';
+  const colA=document.createElement('div'); colA.className='sig-col';
+  colA.innerHTML='<h3>⚠️ Расхождения ('+r.conflicts.length+')</h3>';
+  const colB=document.createElement('div'); colB.className='sig-col';
+  colB.innerHTML='<h3>✅ Общие точки ('+r.matches.length+')</h3>';
+  for(const c of r.conflicts){
+    const div=document.createElement('div'); div.className='sig lie';
+    const t=document.createElement('div'); t.className='sig-top';
+    const t2=document.createElement('span'); t2.className='sig-title'; t2.textContent=c.type;
+    const t3=document.createElement('span'); t3.className='sig-pts lie'; t3.textContent='+'+c.pts.toFixed(0);
+    t.appendChild(t2); t.appendChild(t3);
+    const d=document.createElement('div'); d.className='sig-detail';
+    d.textContent='А: '+c.a+'  •  Б: '+c.b+' — '+c.detail;
+    div.appendChild(t); div.appendChild(d);
+    colA.appendChild(div);
+  }
+  if(!r.conflicts.length){const p=document.createElement('div');p.className='sig info';p.textContent='Явных расхождений в деталях не найдено.';colA.appendChild(p);}
+  for(const mm of r.matches){
+    const p=document.createElement('div');p.className='sig truth';p.textContent=mm;colB.appendChild(p);
+  }
+  if(!r.matches.length){const p=document.createElement('div');p.className='sig info';p.textContent='Сильных общих точек не найдено.';colB.appendChild(p);}
+  $('cSignals').appendChild(colA); $('cSignals').appendChild(colB);
+  for(const n of r.notes){
+    const d=document.createElement('div'); d.className='sig info'; d.style.marginBottom='8px';
+    d.textContent='ℹ️ '+n;
+    $('cNotes').appendChild(d);
+  }
+  const eb=document.createElement('button'); eb.className='btn'; eb.style.marginTop='12px';
+  eb.textContent='📋 Сохранить отчёт (.txt)';
+  eb.onclick=()=>exportResult(compareExportLines(r));
+  box.appendChild(eb);
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
 renderBaseStatus(getBaseline());
+renderHistory();
 </script>
 </body>
 </html>
