@@ -114,13 +114,50 @@ details.method p, details.method li{font-size:13.5px;color:var(--muted)}
 details.method b{color:var(--text)}
 footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 .kbd{background:#1c2447;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px}
+[data-theme="light"]{--bg:#eef1f8;--card:#ffffff;--card2:#f2f4fa;--line:#d8deec;--text:#1c2333;--muted:#5a6480;--acc:#4c5fe0;--acc2:#5f70ea;--good:#15803d;--warn:#a16207;--bad:#dc2626;--mid:#c2570c}
+[data-theme="light"] .strip{background:#f8f1da;border-color:#e0cd8f;color:#5c4d1e}
+[data-theme="light"] .strip b{color:#453a10}
+[data-theme="light"] .tab.active{background:#e3e7ff;border-color:var(--acc);color:#1c2333}
+[data-theme="light"] .btn{background:#fff}
+[data-theme="light"] .btn:hover{background:#eef1ff}
+[data-theme="light"] .btn.primary{color:#fff}
+[data-theme="light"] .btn.primary:hover{color:#fff}
+[data-theme="light"] .btn.mini{background:#fff}
+[data-theme="light"] .hist-row:hover{background:#e8ecfa}
+[data-theme="light"] .qres{background:#f7f8fc}
+[data-theme="light"] .gauge .arc-bg{stroke:#dde3f0}
+[data-theme="light"] .mk.claim{background:rgba(249,115,22,.12)}
+[data-theme="light"] .mk.neg{background:rgba(239,68,68,.10)}
+[data-theme="light"] .mk.hedge{background:rgba(234,179,8,.12)}
+[data-theme="light"] .mk.det{background:rgba(34,197,94,.10)}
+[data-theme="light"] .badge{background:#e8ebff;color:#3c49b8;border-color:#c3cbf5}
+[data-theme="light"] .err{background:#fdecec;border-color:#f0bcbc;color:#8a2c2c}
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.theme-btn{flex:0 0 auto;margin-top:4px}
+#printArea{display:none}
+@media print{
+  body{background:#fff!important}
+  .wrap,#toast{display:none!important}
+  #printArea{display:block;color:#111;font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.55;padding:16px}
+  #printArea .pl{margin:2px 0;white-space:pre-wrap}
+  #printArea .pl-title{font-size:19px;font-weight:700;margin-bottom:4px}
+  #printArea .pl-meta{color:#444}
+  #printArea .pl-blank{height:10px}
+  #printArea .pl-warn{background:#f5f0dc;border:1px solid #d9c98a;padding:8px 12px;margin-top:12px}
+  @page{margin:16mm}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>🕵️ Детектор лжи <span class="badge">AI v1.5 • эксперимент</span></h1>
-  <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
+  <div class="head-row">
+    <div>
+      <h1>🕵️ Детектор лжи <span class="badge">AI v1.6 • эксперимент</span></h1>
+      <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
+    </div>
+    <button class="btn mini theme-btn" id="themeBtn" title="Переключить тему (сохраняется в браузере)">☀️ Светлая</button>
+  </div>
 
   <div class="strip">
     ⚠️ <b>Честное предупреждение.</b> Научные мета-анализы (Bond &amp; DePaulo, 2006; 206 исследований, 24 483 наблюдателя) показывают: люди распознают ложь на ~54% — почти как подбрасывание монеты, а специалисты — не лучше. Ни один ИИ не даёт «гарантированного» результата. Это приложение — <b>учебно-аналитический инструмент</b>: оно подсвечивает статистические маркеры, которые исследователи связывают с обманом. Результат <b>не является заключением о человеке</b> и не может использоваться как улика.
@@ -253,12 +290,19 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <li>Используйте инструмент как <b>подсказку для проверки фактов</b> (детали, согласованность с записями), а не как суд над человеком.</li>
     </ul>
 
+    <h4>Отчёты и темы (v1.6)</h4>
+    <ul>
+      <li><b>Печать / PDF</b> — любой отчёт (текст, голос, две версии, интервью) открывается в диалоге печати; в качестве устройства выбирайте «Сохранить как PDF». Отчёт содержит те же данные, что и текстовый экспорт, плюс дисклеймер.</li>
+      <li><b>Темы</b> — тёмная (по умолчанию) и светлая; выбор сохраняется в браузере.</li>
+    </ul>
+
     <h4>Конфиденциальность</h4>
     <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI v1.5 (текст с подсветкой • голос с ритмом и трендом • эталон расширен • две версии с полярностью • двуязычное интервью RU/EN) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.6 (текст с подсветкой • голос с ритмом и трендом • эталон расширен • две версии с полярностью • двуязычное интервью RU/EN • отчёты в PDF • темы) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
+<div id="printArea"></div>
 
 <script id="core">
 'use strict';
@@ -968,6 +1012,18 @@ function verdictOfEn(score){
 <script>
 /* ================= UI ================= */
 const $=id=>document.getElementById(id);
+/* ---------- Тема (v1.6) ---------- */
+const THEME_KEY='lieDetectorTheme';
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  try{localStorage.setItem(THEME_KEY,t);}catch(e){}
+  const b=$('themeBtn'); if(b) b.textContent=(t==='light'?'🌙 Тёмная':'☀️ Светлая');
+}
+(function(){
+  let t='dark';
+  try{ t=localStorage.getItem(THEME_KEY)||'dark'; }catch(e){}
+  applyTheme(t);
+})();
 let sharedCtx=null;
 function getCtx(){ const AC=window.AudioContext||window.webkitAudioContext; if(!sharedCtx) sharedCtx=new AC(); return sharedCtx; }
 
@@ -998,7 +1054,7 @@ function gaugeHTML(id){
     +'<defs><linearGradient id="grad_'+id+'" x1="0" y1="0" x2="1" y2="0">'
     +'<stop offset="0%" stop-color="#22c55e"/><stop offset="55%" stop-color="#eab308"/><stop offset="100%" stop-color="#ef4444"/>'
     +'</linearGradient></defs>'
-    +'<path d="M 25 120 A 85 85 0 0 1 195 120" fill="none" stroke="#232d4f" stroke-width="16" stroke-linecap="round"/>'
+    +'<path class="arc-bg" d="M 25 120 A 85 85 0 0 1 195 120" fill="none" stroke="#232d4f" stroke-width="16" stroke-linecap="round"/>'
     +'<path id="'+id+'Arc" d="M 25 120 A 85 85 0 0 1 195 120" fill="none" stroke="url(#grad_'+id+')" stroke-width="16" stroke-linecap="round" stroke-dasharray="0 '+ARC_LEN+'"/>'
     +'<text id="'+id+'Num" x="110" y="98" text-anchor="middle" font-size="42" font-weight="800" fill="#e6eaf6">—</text>'
     +'<text id="'+id+'Lab" x="110" y="121" text-anchor="middle" font-size="11" fill="#8d96b8"></text>'
@@ -1085,7 +1141,10 @@ function runTextAnalysis(){
   const eb=document.createElement('button'); eb.className='btn'; eb.style.marginTop='12px';
   eb.textContent='📋 Сохранить отчёт (.txt)';
   attachExport(eb,textExportLines(r));
-  box.appendChild(eb);
+  const pb=document.createElement('button'); pb.className='btn'; pb.style.marginTop='12px'; pb.style.marginLeft='8px';
+  pb.textContent='🖨 Печать / PDF';
+  attachPrint(pb,textExportLines(r));
+  box.appendChild(eb); box.appendChild(pb);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -1142,6 +1201,29 @@ function attachExport(btn,lines){
     exportResult(lines);
     const old=btn.textContent;
     btn.textContent='✓ Сохранено и скопировано';
+    setTimeout(()=>{btn.textContent=old;},2200);
+  };
+}
+function escapeHtml(t){
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function printReport(lines){
+  const area=$('printArea');
+  area.innerHTML=lines.map((l,i)=>{
+    if(l.trim()==='') return '<div class="pl-blank"></div>';
+    let cls='pl';
+    if(i===0) cls+=' pl-title';
+    else if(l.indexOf('Дата:')===0) cls+=' pl-meta';
+    else if(l.indexOf('⚠️')===0) cls+=' pl-warn';
+    return '<div class="'+cls+'">'+escapeHtml(l)+'</div>';
+  }).join('');
+  window.print();
+}
+function attachPrint(btn,lines){
+  btn.onclick=()=>{
+    printReport(lines);
+    const old=btn.textContent;
+    btn.textContent='✓ Печать открыта';
     setTimeout(()=>{btn.textContent=old;},2200);
   };
 }
@@ -1272,7 +1354,10 @@ async function runVoiceAnalysis(buffer){
     const evb=document.createElement('button'); evb.className='btn'; evb.style.marginTop='12px';
     evb.textContent='📋 Сохранить отчёт (.txt)';
     attachExport(evb,voiceExportLines(r, base?compareVoiceMetrics(base,r.metrics):null));
-    box.appendChild(evb);
+    const vpb=document.createElement('button'); vpb.className='btn'; vpb.style.marginTop='12px'; vpb.style.marginLeft='8px';
+    vpb.textContent='🖨 Печать / PDF';
+    attachPrint(vpb,voiceExportLines(r, base?compareVoiceMetrics(base,r.metrics):null));
+    box.appendChild(evb); box.appendChild(vpb);
   }catch(err){
     out.innerHTML='';
     showVoiceError('Не удалось разобрать аудио: '+(err&&err.message?err.message:err)+' — попробуйте другой файл (mp3, wav, ogg, m4a).');
@@ -1523,7 +1608,10 @@ function runCompare(){
   const eb=document.createElement('button'); eb.className='btn'; eb.style.marginTop='12px';
   eb.textContent='📋 Сохранить отчёт (.txt)';
   attachExport(eb,compareExportLines(r));
-  box.appendChild(eb);
+  const cbp=document.createElement('button'); cbp.className='btn'; cbp.style.marginTop='12px'; cbp.style.marginLeft='8px';
+  cbp.textContent='🖨 Печать / PDF';
+  attachPrint(cbp,compareExportLines(r));
+  box.appendChild(eb); box.appendChild(cbp);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -1619,12 +1707,14 @@ function interviewSummary(){
     const c=it.score<40?'var(--good)':it.score<55?'var(--warn)':it.score<70?'var(--mid)':'var(--bad)';
     html+='<div class="stat"><div class="k">'+ql+(k+1)+': '+it.text.slice(0,30)+(it.text.length>30?'…':'')+'</div><div class="v" style="color:'+c+'">'+Math.round(it.score)+'</div></div>';
   });
-  html+='</div><button class="btn" style="margin-top:12px" onclick="exportInterview()">📋 '+(en?'Save interview report (.txt)':'Сохранить отчёт интервью (.txt)')+'</button></div>';
+  html+='</div><div class="row" style="margin:12px 0 0"><button class="btn" id="qExportBtn">📋 '+(en?'Save interview report (.txt)':'Сохранить отчёт интервью (.txt)')+'</button><button class="btn" id="qPrintBtn">🖨 '+(en?'Print / PDF':'Печать / PDF')+'</button></div></div>';
   $('qSummary').innerHTML=html;
   setGauge('qg',avg,v,en?'average answer index 0–100':'средний индекс ответов 0–100');
+  attachExport($('qExportBtn'),interviewExportLines());
+  attachPrint($('qPrintBtn'),interviewExportLines());
   $('qSummary').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function exportInterview(){
+function interviewExportLines(){
   const items=qState.items.filter(i=>i.score!=null);
   const avg=items.length? items.reduce((a,i)=>a+i.score,0)/items.length : 50;
   const v=verdictOf(avg);
@@ -1642,11 +1732,15 @@ function exportInterview(){
   L.push('');
   L.push(en?'⚠️ The result is not a judgment about a person, only statistical markers.'
            :'⚠️ Результат — не заключение о человеке, а только статистические маркеры.');
-  exportResult(L);
+  return L;
+}
+function exportInterview(){
+  exportResult(interviewExportLines());
 }
 
 renderBaseStatus(getBaseline());
 renderHistory();
+$('themeBtn').onclick=()=>{ applyTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light'); };
 </script>
 </body>
 </html>
