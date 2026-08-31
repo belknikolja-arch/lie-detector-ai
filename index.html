@@ -153,7 +153,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 
   <div class="head-row">
     <div>
-      <h1>🕵️ Детектор лжи <span class="badge">AI v1.6 • эксперимент</span></h1>
+      <h1>🕵️ Детектор лжи <span class="badge">AI v1.7 • эксперимент</span></h1>
       <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
     </div>
     <button class="btn mini theme-btn" id="themeBtn" title="Переключить тему (сохраняется в браузере)">☀️ Светлая</button>
@@ -175,7 +175,9 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <textarea id="txtInput" placeholder="Вставьте высказывание, показания или сообщение, которое нужно проверить. Например: «Я не был в офисе вчера вечером, честно. Клянусь, я правда уехал домой в 19:00, ничего не знаю, кто мог взять документы. Может быть, вы ошиблись…»"></textarea>
     <div class="row">
       <button class="btn primary" id="btnAnalyze" onclick="runTextAnalysis()">🔍 Проанализировать</button>
-      <span class="hint">Подсказка: <span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> — анализ</span>
+      <button class="btn" onclick="fillSample()">🧪 Пример текста</button>
+      <button class="btn" onclick="pasteText()">📋 Вставить из буфера</button>
+      <span class="hint" id="txtCount">Слов: 0</span>
     </div>
     <div class="hist">
       <div class="hist-head">
@@ -259,6 +261,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <li><b>Эхо</b> — дословное повторение чужих формулировок — признак «пересборки» ответа.</li>
       <li><b>Размытые указания</b> (v1.4) — «где-то», «кто-то», «на днях»: уклонение от проверяемых привязок. <b>Повышенная интенсивность</b> (v1.4) — всплески восклицаний и выделенных слов, часто сопровождающие оборонительную манеру.</li>
       <li><b>Подсветка предложений</b> (v1.4) — в результате каждое предложение размечено: заверения, отрицания, оговорки, конкретика.</li>
+      <li><b>Быстрый старт</b> (v1.7) — «Пример текста» для знакомства с инструментом, «Вставить из буфера» (если браузер разрешает), живой счётчик слов с определением языка, «Копировать результат» — краткая сводка в буфер.</li>
     </ul>
 
     <h4>Анализ голоса</h4>
@@ -300,7 +303,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI v1.6 (текст с подсветкой • голос с ритмом и трендом • эталон расширен • две версии с полярностью • двуязычное интервью RU/EN • отчёты в PDF • темы) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.7 (текст с подсветкой, примером и вставкой из буфера • голос с ритмом и трендом • эталон расширен • две версии с полярностью • двуязычное интервью RU/EN • отчёты в PDF и копирование • темы) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
 <div id="printArea"></div>
 
@@ -1100,6 +1103,40 @@ function renderSignals(container,signals){
 }
 
 /* ---------- Текст ---------- */
+const SAMPLE_TEXT='Я не был в офисе вчера, честно! Клянусь, я правда не трогал документы, точно. Может быть, вы ошиблись, я не знаю, кто это мог сделать. Никогда, ни разу не видел этого человека, ничего не помню, как бы кто не сказал. А если и видел — то случайно, случайно, просто проходил мимо, у меня были другие дела, поверьте, это правда.';
+function fillSample(){
+  const ta=$('txtInput');
+  ta.value=SAMPLE_TEXT;
+  updateTxtCount();
+  ta.focus();
+}
+async function pasteText(){
+  try{
+    const t=await navigator.clipboard.readText();
+    if(!t||!t.trim()){ $('txtCount').textContent='Буфер обмена пуст'; return; }
+    const ta=$('txtInput');
+    ta.value=(ta.value.trim()?ta.value.trim()+'\n\n':'')+t.trim();
+    updateTxtCount();
+    ta.focus();
+  }catch(e){
+    alert('Браузер не разрешил чтение буфера обмена. Вставьте вручную: Ctrl+V.');
+  }
+}
+function updateTxtCount(){
+  const t=$('txtInput').value;
+  const w=t.trim()?t.trim().split(/\s+/).length:0;
+  const lang=w>=4?detectLang(t):null;
+  $('txtCount').textContent='Слов: '+w+(lang?' • язык: '+(lang==='ru'?'русский':'английский'):'');
+}
+$('txtInput').addEventListener('input',updateTxtCount);
+function copyShortResult(btn,r){
+  const top=r.signals.filter(x=>x.side!=='info').sort((a,b)=>Math.abs(b.pts)-Math.abs(a.pts)).slice(0,3).map(x=>x.title).join('; ');
+  const txt='Детектор лжи: индекс '+Math.round(r.score)+'/100 — '+r.verdict.title+'. Достоверность: '+r.confidence.label+' ('+r.nWords+' слов). Ключевые маркеры: '+(top||'нет').concat('. (Результат — не заключение о человеке, только статистические маркеры.)');
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(()=>{});
+  const old=btn.textContent;
+  btn.textContent='✓ Скопировано';
+  setTimeout(()=>{btn.textContent=old;},2000);
+}
 function runTextAnalysis(){
   const raw=$('txtInput').value;
   if(!raw.trim()){ flashError($('textResult'),'Сначала вставьте текст для анализа.'); return; }
@@ -1144,7 +1181,10 @@ function runTextAnalysis(){
   const pb=document.createElement('button'); pb.className='btn'; pb.style.marginTop='12px'; pb.style.marginLeft='8px';
   pb.textContent='🖨 Печать / PDF';
   attachPrint(pb,textExportLines(r));
-  box.appendChild(eb); box.appendChild(pb);
+  const kb=document.createElement('button'); kb.className='btn'; kb.style.marginTop='12px'; kb.style.marginLeft='8px';
+  kb.textContent='📋 Копировать результат';
+  kb.onclick=()=>copyShortResult(kb,r);
+  box.appendChild(eb); box.appendChild(pb); box.appendChild(kb);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -1740,6 +1780,7 @@ function exportInterview(){
 
 renderBaseStatus(getBaseline());
 renderHistory();
+updateTxtCount();
 $('themeBtn').onclick=()=>{ applyTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light'); };
 </script>
 </body>
