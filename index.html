@@ -153,7 +153,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
 
   <div class="head-row">
     <div>
-      <h1>🕵️ Детектор лжи <span class="badge">AI v1.7 • эксперимент</span></h1>
+      <h1>🕵️ Детектор лжи <span class="badge">AI v1.8 • эксперимент</span></h1>
       <p class="sub">Анализ текста и речи на маркеры обмана + сравнение голоса с эталоном. Работает полностью в вашем браузере — ни текст, ни аудио никуда не отправляются.</p>
     </div>
     <button class="btn mini theme-btn" id="themeBtn" title="Переключить тему (сохраняется в браузере)">☀️ Светлая</button>
@@ -187,6 +187,19 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <div id="histList"></div>
     </div>
     <div id="textResult"></div>
+    <div class="card" style="margin-top:16px">
+      <h3>⚔️ Сравнить два высказывания</h3>
+      <p class="hint" style="margin-top:4px">Два рассказа об одном событии оцениваются независимо. Разница меньше 8 пунктов — в пределах шума маркеров; это статистика, не доказательство.</p>
+      <div class="cmp2">
+        <div><label class="muted" style="display:block;margin-bottom:6px">Высказывание А</label><textarea id="abA" style="min-height:120px" placeholder="…"></textarea></div>
+        <div><label class="muted" style="display:block;margin-bottom:6px">Высказывание Б</label><textarea id="abB" style="min-height:120px" placeholder="…"></textarea></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" onclick="runABCompare()">⚔️ Сравнить</button>
+        <button class="btn" onclick="fillABFromMain()">↪ Взять текст из поля анализа</button>
+      </div>
+      <div id="abResult"></div>
+    </div>
   </div>
 
   <!-- ==================== VOICE ==================== -->
@@ -262,6 +275,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
       <li><b>Размытые указания</b> (v1.4) — «где-то», «кто-то», «на днях»: уклонение от проверяемых привязок. <b>Повышенная интенсивность</b> (v1.4) — всплески восклицаний и выделенных слов, часто сопровождающие оборонительную манеру.</li>
       <li><b>Подсветка предложений</b> (v1.4) — в результате каждое предложение размечено: заверения, отрицания, оговорки, конкретика.</li>
       <li><b>Быстрый старт</b> (v1.7) — «Пример текста» для знакомства с инструментом, «Вставить из буфера» (если браузер разрешает), живой счётчик слов с определением языка, «Копировать результат» — краткая сводка в буфер.</li>
+      <li><b>Сравнить два высказывания</b> (v1.8) — два рассказа об одном событии оцениваются независимо, показывается разница индексов; «Копировать результат» теперь есть у голоса и сравнения версий; сравнения из истории можно повторять кликом (тексты A/B сохраняются).</li>
     </ul>
 
     <h4>Анализ голоса</h4>
@@ -303,7 +317,7 @@ footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:26px}
     <p>Весь анализ выполняется локально в вашем браузере. Аудио и текст не передаются на сервер и никуда не сохраняются (эталон голоса хранится только в localStorage вашего браузера — удаляется одной кнопкой).</p>
   </details>
 
-  <footer>Детектор лжи • AI v1.7 (текст с подсветкой, примером и вставкой из буфера • голос с ритмом и трендом • эталон расширен • две версии с полярностью • двуязычное интервью RU/EN • отчёты в PDF и копирование • темы) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
+  <footer>Детектор лжи • AI v1.8 (текст с подсветкой, примером и вставкой из буфера • сравнение двух высказываний A/B • голос с ритмом и трендом • эталон расширен • две версии с полярностью • двуязычное интервью RU/EN • отчёты в PDF и копирование везде • история с повтором • темы) — учебно-экспериментальный инструмент. Не является орудием допроса, судебно-психологической экспертизой или медизделием.</footer>
 </div>
 <div id="printArea"></div>
 
@@ -1137,6 +1151,22 @@ function copyShortResult(btn,r){
   btn.textContent='✓ Скопировано';
   setTimeout(()=>{btn.textContent=old;},2000);
 }
+function copyBtnCopy(txt,btn){
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(()=>{});
+  const old=btn.textContent;
+  btn.textContent='✓ Скопировано';
+  setTimeout(()=>{btn.textContent=old;},2000);
+}
+function copyShortVoice(btn,r,cmp){
+  const top=r.signals.filter(x=>x.side!=='info').sort((a,b)=>Math.abs(b.pts)-Math.abs(a.pts)).slice(0,3).map(x=>x.title).join('; ');
+  const txt='Детектор лжи: голос, индекс '+Math.round(r.score)+'/100 — '+r.verdict.title+'. Достоверность: '+r.confidence.label+(cmp?' • отклонение от эталона: '+cmp.index+'/100':'')+'. Ключевые маркеры: '+(top||'нет')+'. (Результат — не заключение о человеке, только статистические маркеры.)';
+  copyBtnCopy(txt,btn);
+}
+function copyShortCompare(btn,r){
+  const top=r.conflicts.slice(0,3).map(c=>c.type).join('; ');
+  const txt='Детектор лжи: две версии, индекс согласованности '+r.consistency+'/100 — '+r.verdict.title+'. Расхождений: '+r.conflicts.length+(top?' ('+top+')':'')+'. (Инструмент проверки фактов, не доказательство лжи.)';
+  copyBtnCopy(txt,btn);
+}
 function runTextAnalysis(){
   const raw=$('txtInput').value;
   if(!raw.trim()){ flashError($('textResult'),'Сначала вставьте текст для анализа.'); return; }
@@ -1188,6 +1218,32 @@ function runTextAnalysis(){
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
+function abSideHTML(label,r){
+  const col=r.score<40?'var(--good)':r.score<55?'var(--warn)':r.score<70?'var(--mid)':'var(--bad)';
+  return '<div style="flex:1;min-width:230px"><div class="hint" style="margin:0 0 4px">'+label+'</div>'
+    +'<div style="font-size:34px;font-weight:800;color:'+col+';line-height:1">'+Math.round(r.score)+'<span style="font-size:13px;font-weight:400;color:var(--muted)"> /100</span></div>'
+    +'<div style="height:8px;border-radius:4px;background:rgba(109,124,255,.15);overflow:hidden;margin:8px 0"><div style="width:'+r.score+'%;height:100%;background:'+col+';border-radius:4px"></div></div>'
+    +'<div style="font-size:13px">'+r.verdict.title+' • достоверность: '+r.confidence.label+' • '+(r.lang==='ru'?'русский':'английский')+'</div></div>';
+}
+function runABCompare(){
+  const A=$('abA').value, B=$('abB').value;
+  const el=$('abResult');
+  if(!A.trim()||!B.trim()){ el.innerHTML='<div class="muted" style="margin-top:10px">Заполните оба высказывания.</div>'; return; }
+  const rA=analyzeText(A), rB=analyzeText(B);
+  pushHistory({type:'cmp',date:Date.now(),score:Math.round(rA.score),verdict:'A/B тексты',extra:'A: '+Math.round(rA.score)+' • Б: '+Math.round(rB.score)+' (разница '+(rB.score-rA.score>=0?'+':'')+Math.round(rB.score-rA.score)+')'});
+  const diff=rB.score-rA.score, abs=Math.abs(diff);
+  const head=abs<8?'Явной разницы между версиями не видно (Δ '+abs.toFixed(0)+')'
+    :(diff>0?'Версия Б выглядит менее убедительной (Δ +'+diff.toFixed(0)+')':'Версия А выглядит менее убедительной (Δ −'+abs.toFixed(0)+')');
+  el.innerHTML='<div class="result" style="margin-top:12px"><div class="row" style="gap:18px;flex-wrap:wrap">'
+    +abSideHTML('Высказывание А ('+rA.nWords+' слов)',rA)
+    +abSideHTML('Высказывание Б ('+rB.nWords+' слов)',rB)
+    +'</div><div class="verdict" style="margin-top:12px;color:var(--mid)">'+head+'</div>'
+    +'<div class="hint" style="margin-top:6px">Индексы считаются независимо (сигналы каждого текста). Разница меньше 8 пунктов — в пределах шума маркеров.</div></div>';
+}
+function fillABFromMain(){
+  $('abA').value=$('txtInput').value;
+  updateTxtCount();
+}
 /* ---------- Экспорт отчёта ---------- */
 function textExportLines(r){
   const L=['Детектор лжи AI — анализ текста','Дата: '+new Date().toLocaleString('ru-RU'),''];
@@ -1316,6 +1372,11 @@ function renderHistory(){
       const ar=document.createElement('span'); ar.className='hist-act'; ar.textContent='↺';
       row.appendChild(ar);
       row.onclick=()=>{ $('txtInput').value=it.text; runTextAnalysis(); };
+    } else if(it.type==='cmp'&&it.a&&it.b){
+      row.style.cursor='pointer'; row.title='Повторить сравнение двух версий';
+      const ar=document.createElement('span'); ar.className='hist-act'; ar.textContent='↺';
+      row.appendChild(ar);
+      row.onclick=()=>{ $('cmpA').value=it.a; $('cmpB').value=it.b; switchTab('cmp'); runCompare(); };
     } else {
       row.title='Просмотрная запись (исходный материал не сохраняется)';
     }
@@ -1397,7 +1458,10 @@ async function runVoiceAnalysis(buffer){
     const vpb=document.createElement('button'); vpb.className='btn'; vpb.style.marginTop='12px'; vpb.style.marginLeft='8px';
     vpb.textContent='🖨 Печать / PDF';
     attachPrint(vpb,voiceExportLines(r, base?compareVoiceMetrics(base,r.metrics):null));
-    box.appendChild(evb); box.appendChild(vpb);
+    const vkb=document.createElement('button'); vkb.className='btn'; vkb.style.marginTop='12px'; vkb.style.marginLeft='8px';
+    vkb.textContent='📋 Копировать результат';
+    vkb.onclick=()=>copyShortVoice(vkb,r, base?compareVoiceMetrics(base,r.metrics):null);
+    box.appendChild(evb); box.appendChild(vpb); box.appendChild(vkb);
   }catch(err){
     out.innerHTML='';
     showVoiceError('Не удалось разобрать аудио: '+(err&&err.message?err.message:err)+' — попробуйте другой файл (mp3, wav, ogg, m4a).');
@@ -1606,7 +1670,7 @@ function runCompare(){
   const A=$('cmpA').value, B=$('cmpB').value;
   if(!A.trim()||!B.trim()){ flashError($('cmpResult'),'Вставьте обе версии для сравнения.'); return; }
   const r=compareStatements(A,B);
-  pushHistory({type:'cmp',date:Date.now(),score:r.consistency,verdict:r.verdict.title,extra:'сравнение версий: '+r.conflicts.length+' расхождений'});
+  pushHistory({type:'cmp',date:Date.now(),score:r.consistency,verdict:r.verdict.title,extra:'сравнение версий: '+r.conflicts.length+' расхождений',a:A.trim().slice(0,4000),b:B.trim().slice(0,4000)});
   const el=$('cmpResult');
   el.innerHTML='';
   const box=document.createElement('div'); box.className='result';
@@ -1651,7 +1715,10 @@ function runCompare(){
   const cbp=document.createElement('button'); cbp.className='btn'; cbp.style.marginTop='12px'; cbp.style.marginLeft='8px';
   cbp.textContent='🖨 Печать / PDF';
   attachPrint(cbp,compareExportLines(r));
-  box.appendChild(eb); box.appendChild(cbp);
+  const ckb=document.createElement('button'); ckb.className='btn'; ckb.style.marginTop='12px'; ckb.style.marginLeft='8px';
+  ckb.textContent='📋 Копировать результат';
+  ckb.onclick=()=>copyShortCompare(ckb,r);
+  box.appendChild(eb); box.appendChild(cbp); box.appendChild(ckb);
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
